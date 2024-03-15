@@ -1,0 +1,24 @@
+{
+  "name": "CoffeeBot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Szabolcs Dékány <dekany.szabolcs92@proton.me>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node .",
+    "build": "tsup src/index.ts --minify",
+    "format": "prettier --write \"**/*.{json,ts}\"",
+    "lint": "eslint . --ext ts --fix"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.2"
+  }
+}
