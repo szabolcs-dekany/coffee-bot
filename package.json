@@ -1,5 +1,5 @@
 {
-  "name": "CoffeeBot",
+  "name": "coffee-bot",
   "version": "1.0.0",
   "main": "dist/index.js",
   "author": "Szabolcs Dékány <dekany.szabolcs92@proton.me>",
