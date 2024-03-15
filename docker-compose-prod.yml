@@ -17,7 +17,7 @@ services:
   coffee-bot:
     depends_on:
       - coffee-bot-mongo-prod
-    image: coffee-bot:latest
+    image: ghcr.io/szabolcs-dekany/coffee-bot:latest
     container_name: coffee_bot_prod
     networks:
       - coffee_bot_network
