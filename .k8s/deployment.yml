@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coffee-bot-mongo-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coffee-bot-mongo-prod
+  template:
+    metadata:
+      labels:
+        app: coffee-bot-mongo-prod
+    spec:
+      containers:
+        - name: coffee-bot-mongo-prod
+          image: mongo:latest
+          ports:
+            - containerPort: 27017
+          envFrom:
+            - configMapRef:
+                name: coffee-bot-config
+          volumeMounts:
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: init-script
+          configMap:
+            name: mongo-init-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coffee-bot-mongo-prod-service
+spec:
+  selector:
+    app: coffee-bot-mongo-prod
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coffee-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coffee-bot
+  template:
+    metadata:
+      labels:
+        app: coffee-bot
+    spec:
+      containers:
+        - name: coffee-bot
+          image: ghcr.io/szabolcs-dekany/coffee-bot:latest
+          envFrom:
+            - configMapRef:
+                name: coffee-bot-config
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
