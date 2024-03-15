@@ -1,21 +1,26 @@
-import mongoose, {Document, Schema} from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose'
 
 interface ICoffeeRequest extends Document {
-    sessionId: string
-    milkType: string;
-    froth: boolean;
-    aromaStrength: string;
-    sugar: string;
-    coffeeCrewPerson: string;
+  sessionId: string
+  coffeeType: string
+  milkType: string
+  aromaStrength: string
+  sugar: string
+  coffeeCrewPerson: string
+  coffeeCrewPersonName: string
 }
 
 const CoffeeRequestSchema: Schema = new Schema({
-    sessionId: {type: String, required: true},
-    milkType: {type: String, required: true},
-    froth: {type: Boolean, required: true},
-    aromaStrength: {type: String, required: true},
-    sugar: {type: String, required: true},
-    coffeeCrewPerson: {type: String, required: true}
-});
+  sessionId: { type: String, required: true },
+  coffeeType: { type: String, required: false },
+  milkType: { type: String, required: false },
+  aromaStrength: { type: String, required: false },
+  sugar: { type: String, required: false },
+  coffeeCrewPerson: { type: String, required: true },
+  coffeeCrewPersonName: { type: String, required: true },
+})
 
-export const CoffeeRequestDocument = mongoose.model<ICoffeeRequest>('coffee_request', CoffeeRequestSchema);
+export const CoffeeRequestDocument = mongoose.model<ICoffeeRequest>(
+  'coffee_request',
+  CoffeeRequestSchema,
+)

@@ -1,0 +1,17 @@
+version: '3.8'
+name: 'coffee_bot'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: coffee_bot_mongo
+    volumes:
+      - 'mongo-data:/data/db'
+      - './init:/docker-entrypoint-initdb.d'
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: coffee_bot_root
+      MONGO_INITDB_ROOT_PASSWORD: 3ad611ff-9dbd-43f3-bde5-6d17025cf6a7
+
+volumes:
+  mongo-data:

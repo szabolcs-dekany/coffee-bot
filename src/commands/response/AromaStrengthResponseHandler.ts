@@ -1,25 +1,30 @@
-import {StringSelectMenuInteraction} from "discord.js";
-import {CoffeeRequestDocument} from "../../documents/CoffeeDocument";
+import { StringSelectMenuInteraction } from 'discord.js'
+import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
 
-export async function handleMilkType(interaction: StringSelectMenuInteraction, sessionId: string) {
-    const userId = interaction.user.id
-    const milkType = interaction.values[0]
+export async function handleAromaStrength(
+  interaction: StringSelectMenuInteraction,
+  sessionId: string,
+) {
+  const userId = interaction.user.id
+  const displayName = interaction.user.displayName
+  const aromaStrength = interaction.values[0]
 
-    const coffeeDocument = await CoffeeRequestDocument.findOne({
-        sessionId: sessionId,
-        coffeeCrewPerson: userId
-    })
+  const coffeeDocument = await CoffeeRequestDocument.findOne({
+    sessionId: sessionId,
+    coffeeCrewPerson: userId,
+  })
 
-    if (coffeeDocument) {
-        coffeeDocument.milkType = milkType
-        await coffeeDocument.save()
-    } else {
-        await new CoffeeRequestDocument({
-            sessionId: sessionId,
-            coffeeType: milkType,
-            coffeeCrewPerson: userId
-        }).save()
-    }
+  if (coffeeDocument) {
+    coffeeDocument.aromaStrength = aromaStrength
+    await coffeeDocument.save()
+  } else {
+    await new CoffeeRequestDocument({
+      sessionId: sessionId,
+      aromaStrength: aromaStrength,
+      coffeeCrewPerson: userId,
+      coffeeCrewPersonName: displayName,
+    }).save()
+  }
 
-    await interaction.reply({content: 'Milk type saved! 🥛'});
+  await interaction.reply({ content: 'Aroma strength saved! 🌬️' })
 }

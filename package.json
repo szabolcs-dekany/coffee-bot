@@ -1,7 +1,7 @@
 {
   "name": "CoffeeBot",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "author": "Szabolcs Dékány <dekany.szabolcs92@proton.me>",
   "license": "MIT",
   "private": true,
@@ -13,10 +13,25 @@
     "lint": "eslint . --ext ts --fix"
   },
   "dependencies": {
+    "@types/mongoose": "^5.11.97",
+    "@types/uuid": "^9.0.8",
     "discord.js": "^14.14.1",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.2.1",
+    "pino": "^8.19.0",
+    "pino-pretty": "^10.3.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/node": "^18.13.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "prettier": "^3.2.5",
     "tsup": "^8.0.2",
     "tsx": "^4.7.1",
     "typescript": "^5.4.2"

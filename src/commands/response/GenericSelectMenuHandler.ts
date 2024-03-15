@@ -1,38 +1,52 @@
-import {StringSelectMenuInteraction} from "discord.js";
-import pino from "pino";
-import {handleCoffeeType} from "./CoffeeTypeResponseHandler";
-import {handleMilkType} from "./MilkTypeResponseHandler";
+import { StringSelectMenuInteraction } from 'discord.js'
+import pino from 'pino'
+import { handleCoffeeType } from './CoffeeTypeResponseHandler'
+import { handleMilkType } from './MilkTypeResponseHandler'
+import { handleAromaStrength } from './AromaStrengthResponseHandler'
+import { handleSugar } from './SugarResponseHandler'
 
 const logger = pino({
-    name: 'coffee-bot-generic-select-handler',
-    level: 'debug',
-    transport: {
-        target: 'pino-pretty'
-    },
+  name: 'coffee-bot-generic-select-handler',
+  level: 'debug',
+  transport: {
+    target: 'pino-pretty',
+  },
 })
 
-export async function handleInteraction(interaction: StringSelectMenuInteraction) {
-    const customId = interaction.customId
-    const sessionId = await getSessionId(customId)
-    const responseType = await getResponseType(customId)
+export async function handleInteraction(
+  interaction: StringSelectMenuInteraction,
+) {
+  const customId = interaction.customId
+  const sessionId = await getSessionId(customId)
+  const responseType = await getResponseType(customId)
 
-    logger.info(`Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`)
+  logger.info(
+    `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
+  )
 
-    if (responseType === 'coffee-type') {
-        return handleCoffeeType(interaction, sessionId)
-    }
+  if (responseType === 'coffee-type') {
+    return handleCoffeeType(interaction, sessionId)
+  }
 
-    if (responseType === 'milk-type') {
-        return handleMilkType(interaction, sessionId)
-    }
+  if (responseType === 'milk-type') {
+    return handleMilkType(interaction, sessionId)
+  }
 
-    return interaction.reply({content: 'Hi'})
+  if (responseType === 'aroma-strength') {
+    return handleAromaStrength(interaction, sessionId)
+  }
+
+  if (responseType === 'sugar') {
+    return handleSugar(interaction, sessionId)
+  }
+
+  return interaction.reply({ content: 'Hi' })
 }
 
 const getSessionId = async (customId: string) => {
-    return customId.split("|")[0]
-};
+  return customId.split('|')[0]
+}
 
 const getResponseType = async (customId: string) => {
-    return customId.split("|")[1]
-};
+  return customId.split('|')[1]
+}
