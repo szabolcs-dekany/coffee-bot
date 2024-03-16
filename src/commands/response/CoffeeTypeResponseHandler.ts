@@ -1,5 +1,6 @@
 import { StringSelectMenuInteraction } from 'discord.js'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
+import { isCompleteCoffeeDocument } from '../CoffeeDocumentHelper'
 
 export async function handleCoffeeType(
   interaction: StringSelectMenuInteraction,
@@ -26,5 +27,12 @@ export async function handleCoffeeType(
     }).save()
   }
 
-  await interaction.reply({ content: 'Coffee type saved! ☕️' })
+  await interaction.deferUpdate()
+
+  if (coffeeDocument && isCompleteCoffeeDocument(coffeeDocument)) {
+    await interaction.followUp({
+      content: 'Your coffee order is complete! 🎉, See you soon!',
+      components: [],
+    })
+  }
 }
