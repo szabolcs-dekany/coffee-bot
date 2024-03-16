@@ -26,5 +26,5 @@ export async function handleAromaStrength(
     }).save()
   }
 
-  await interaction.reply({ content: 'Aroma strength saved! 🌬️' })
+  return coffeeDocument
 }

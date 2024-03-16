@@ -26,5 +26,5 @@ export async function handleSugar(
     }).save()
   }
 
-  await interaction.reply({ content: 'Sugar levels saved! 🍬' })
+  return coffeeDocument
 }

@@ -25,5 +25,6 @@ export async function handleMilkType(
       coffeeCrewPersonName: displayName,
     }).save()
   }
-  await interaction.reply({ content: 'Milk type saved! 🥛' })
+
+  return coffeeDocument
 }

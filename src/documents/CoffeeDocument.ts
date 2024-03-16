@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-interface ICoffeeRequest extends Document {
+export interface ICoffeeRequest extends Document {
   sessionId: string
   coffeeType: string
   milkType: string

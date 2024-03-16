@@ -26,5 +26,5 @@ export async function handleCoffeeType(
     }).save()
   }
 
-  await interaction.reply({ content: 'Coffee type saved! ☕️' })
+  return coffeeDocument
 }
