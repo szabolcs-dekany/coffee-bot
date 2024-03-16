@@ -4,6 +4,7 @@ import { handleCoffeeType } from './CoffeeTypeResponseHandler'
 import { handleMilkType } from './MilkTypeResponseHandler'
 import { handleAromaStrength } from './AromaStrengthResponseHandler'
 import { handleSugar } from './SugarResponseHandler'
+import { isCompleteCoffeeDocument } from '../CoffeeDocumentHelper'
 
 const logger = pino({
   name: 'coffee-bot-generic-select-handler',
@@ -24,23 +25,32 @@ export async function handleInteraction(
     `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
   )
 
+  let coffeeDocument = undefined
+
   if (responseType === 'coffee-type') {
-    return handleCoffeeType(interaction, sessionId)
+    coffeeDocument = await handleCoffeeType(interaction, sessionId)
   }
 
   if (responseType === 'milk-type') {
-    return handleMilkType(interaction, sessionId)
+    coffeeDocument = await handleMilkType(interaction, sessionId)
   }
 
   if (responseType === 'aroma-strength') {
-    return handleAromaStrength(interaction, sessionId)
+    coffeeDocument = await handleAromaStrength(interaction, sessionId)
   }
 
   if (responseType === 'sugar') {
-    return handleSugar(interaction, sessionId)
+    coffeeDocument = await handleSugar(interaction, sessionId)
   }
 
-  return interaction.reply({ content: 'Hi' })
+  await interaction.deferUpdate()
+
+  if (coffeeDocument && isCompleteCoffeeDocument(coffeeDocument)) {
+    await interaction.followUp({
+      content: 'Your coffee order is complete! 🎉, See you soon! ☕️',
+      components: [],
+    })
+  }
 }
 
 const getSessionId = async (customId: string) => {

@@ -29,6 +29,7 @@ export const data = new SlashCommandBuilder()
   )
 
 export async function execute(interaction: CommandInteraction) {
+  await interaction.deferReply()
   const member = interaction.guild?.members.cache.get(interaction.user.id)
   const roles = member?.roles.cache
 
@@ -163,5 +164,5 @@ export async function execute(interaction: CommandInteraction) {
     }
   }
 
-  return interaction.reply('Coffee requests sent! ☕️')
+  return interaction.followUp('Coffee requests sent! ☕️')
 }
