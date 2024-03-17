@@ -26,9 +26,11 @@ export async function execute(interaction: CommandInteraction) {
     logger.info(
       `User ${interaction.user.tag} does not have the coffee crew role`,
     )
-    return interaction.reply('You do not have the coffee crew core role! ☕️')
+    return interaction.reply({
+      content: 'You do not have the coffee crew core role! ☕️',
+      ephemeral: true,
+    })
   }
-  // Fetch the latest coffee session
   const latestSession = await CoffeeSessionDocument.findOne().sort({
     startDateTime: -1,
   })
@@ -37,27 +39,27 @@ export async function execute(interaction: CommandInteraction) {
     return interaction.reply('No coffee sessions found.')
   }
 
-  // Fetch all coffee requests for the latest session
   const coffeeRequests = await CoffeeRequestDocument.find({
     sessionId: latestSession.sessionId,
   })
-
-  // Format the coffee requests into a string
   let reply = ''
+
+  reply += `**Session ID:** ${latestSession.sessionId}\n`
+  reply += `**Start Date Time:** ${latestSession.startDateTime}\n`
+  reply += `**Estimate Time of Coffee:** ${latestSession.estimatedTimeOfCoffee}\n`
+  reply += `**Number of coffee crew people:** ${latestSession.coffeeCrewNumber}\n\n`
+
   coffeeRequests.forEach((request, index) => {
     reply += `**Request ${index + 1}:**\n`
     reply += `**Coffee Type:** ${request.coffeeType}\n`
-    reply += `**Milk Type:** ${request.milkType}\n`
     reply += `**Aroma Strength:** ${request.aromaStrength}\n`
     reply += `**Sugar:** ${request.sugar}\n`
     reply += `**Coffee Crew Person:** ${request.coffeeCrewPersonName}\n\n`
   })
 
-  // If no requests were found, reply with a message saying so
   if (reply === '') {
     reply = 'No coffee requests found for the latest session.'
   }
 
-  // Reply to the interaction with the list of coffee requests
   await interaction.reply(reply)
 }

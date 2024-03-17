@@ -1,7 +1,6 @@
 import { StringSelectMenuInteraction } from 'discord.js'
 import pino from 'pino'
 import { handleCoffeeType } from './CoffeeTypeResponseHandler'
-import { handleMilkType } from './MilkTypeResponseHandler'
 import { handleAromaStrength } from './AromaStrengthResponseHandler'
 import { handleSugar } from './SugarResponseHandler'
 import { isCompleteCoffeeDocument } from '../CoffeeDocumentHelper'
@@ -29,10 +28,6 @@ export async function handleInteraction(
 
   if (responseType === 'coffee-type') {
     coffeeDocument = await handleCoffeeType(interaction, sessionId)
-  }
-
-  if (responseType === 'milk-type') {
-    coffeeDocument = await handleMilkType(interaction, sessionId)
   }
 
   if (responseType === 'aroma-strength') {

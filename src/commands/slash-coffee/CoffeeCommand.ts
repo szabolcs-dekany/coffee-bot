@@ -41,7 +41,10 @@ export async function execute(interaction: CommandInteraction) {
     logger.info(
       `User ${interaction.user.tag} does not have the coffee crew role`,
     )
-    return interaction.reply('You do not have the coffee crew core role! ☕️')
+    return interaction.reply({
+      content: 'You do not have the coffee crew core role! ☕️',
+      ephemeral: true,
+    })
   }
 
   logger.info('Fetching members with the coffee crew role...')
@@ -88,26 +91,8 @@ export async function execute(interaction: CommandInteraction) {
             .setLabel('Espresso')
             .setValue('espresso'),
           new StringSelectMenuOptionBuilder()
-            .setLabel('Cappuccino')
-            .setValue('cappuccino'),
-          new StringSelectMenuOptionBuilder()
-            .setLabel('Latte')
-            .setValue('Latte'),
-        ),
-    )
-
-  const milkTypeSelect =
-    new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId(`${sessionId}|milk-type`)
-        .setPlaceholder('Select your milk type')
-        .addOptions(
-          new StringSelectMenuOptionBuilder()
             .setLabel('Regular')
             .setValue('regular'),
-          new StringSelectMenuOptionBuilder()
-            .setLabel('Me, when I realise I live in the milky way 🚽💩')
-            .setValue('lactose-free'),
         ),
     )
 
@@ -155,7 +140,7 @@ export async function execute(interaction: CommandInteraction) {
       const dmChannel = await coffeeEnjoyer.createDM()
       await dmChannel.send({
         content: message,
-        components: [coffeeRow, milkTypeSelect, aromaTypeSelect, sugarSelect],
+        components: [coffeeRow, aromaTypeSelect, sugarSelect],
       })
     } catch (error) {
       logger.error(
