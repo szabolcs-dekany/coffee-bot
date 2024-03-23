@@ -57,6 +57,7 @@ spec:
       containers:
         - name: coffee-bot
           image: ghcr.io/szabolcs-dekany/coffee-bot:main-latest
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: coffee-bot-config

@@ -52,17 +52,12 @@ export async function execute(interaction: CommandInteraction) {
     role => role.name === 'coffee-crew',
   )
   const allMembers = await interaction.guild?.members.fetch()
-  const membersWithRole = allMembers?.filter(member =>
-    member.roles.cache.has(targetRole?.id || ''),
-  )
-
-  const onlineMembers =
-    membersWithRole?.filter(
-      member =>
-        member.presence?.status === 'online' ||
-        member.presence?.status === 'idle',
+  const membersWithRole =
+    allMembers?.filter(member =>
+      member.roles.cache.has(targetRole?.id || ''),
     ) || []
-  const coffeeCrew = [...onlineMembers.values()]
+
+  const coffeeCrew = [...membersWithRole.values()]
 
   logger.info(
     `We have the coffee crew! Today there are ${coffeeCrew.length} crew member(s) 🔥`,
@@ -88,11 +83,11 @@ export async function execute(interaction: CommandInteraction) {
         .setPlaceholder('Select your coffee type')
         .addOptions(
           new StringSelectMenuOptionBuilder()
-            .setLabel('Espresso')
-            .setValue('espresso'),
-          new StringSelectMenuOptionBuilder()
-            .setLabel('Regular')
+            .setLabel('I want the usual ☕️🥛')
             .setValue('regular'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Im Barbi and I want an Espresso with milk')
+            .setValue('barbi-espresso-with-milk'),
         ),
     )
 
@@ -134,13 +129,36 @@ export async function execute(interaction: CommandInteraction) {
         ),
     )
 
+  const temperatureSelect =
+    new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(`${sessionId}|temperature`)
+        .setPlaceholder('Milk temperature')
+        .addOptions(
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Hot 🥵')
+            .setValue('Hot'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Room temperature 🌡️')
+            .setValue('Room temperature'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Vanilla Ice 🧊')
+            .setValue('Ice coffee'),
+        ),
+    )
+
   const message = `Hi there! It's that time of the day again ☕️. Please send your coffee request by ${estimatedTimeOfCoffee} ⏰`
   for (const coffeeEnjoyer of coffeeCrew) {
     try {
       const dmChannel = await coffeeEnjoyer.createDM()
       await dmChannel.send({
         content: message,
-        components: [coffeeRow, aromaTypeSelect, sugarSelect],
+        components: [
+          coffeeRow,
+          aromaTypeSelect,
+          sugarSelect,
+          temperatureSelect,
+        ],
       })
     } catch (error) {
       logger.error(

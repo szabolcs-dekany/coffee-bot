@@ -4,6 +4,7 @@ export const isCompleteCoffeeDocument = (document: ICoffeeRequest): boolean => {
   return (
     document.coffeeType !== undefined &&
     document.aromaStrength !== undefined &&
+    document.temperature !== undefined &&
     document.sugar !== undefined
   )
 }

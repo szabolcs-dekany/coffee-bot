@@ -6,6 +6,7 @@ export interface ICoffeeRequest extends Document {
   milkType: string
   aromaStrength: string
   sugar: string
+  temperature: string
   coffeeCrewPerson: string
   coffeeCrewPersonName: string
 }
@@ -15,6 +16,7 @@ const CoffeeRequestSchema: Schema = new Schema({
   coffeeType: { type: String, required: false },
   aromaStrength: { type: String, required: false },
   sugar: { type: String, required: false },
+  temperature: { type: String, required: false },
   coffeeCrewPerson: { type: String, required: true },
   coffeeCrewPersonName: { type: String, required: true },
 })

@@ -4,6 +4,7 @@ import { handleCoffeeType } from './CoffeeTypeResponseHandler'
 import { handleAromaStrength } from './AromaStrengthResponseHandler'
 import { handleSugar } from './SugarResponseHandler'
 import { isCompleteCoffeeDocument } from '../CoffeeDocumentHelper'
+import { handleTemperature } from './TemperatureResponseHandler'
 
 const logger = pino({
   name: 'coffee-bot-generic-select-handler',
@@ -36,6 +37,10 @@ export async function handleInteraction(
 
   if (responseType === 'sugar') {
     coffeeDocument = await handleSugar(interaction, sessionId)
+  }
+
+  if (responseType === 'temperature') {
+    coffeeDocument = await handleTemperature(interaction, sessionId)
   }
 
   await interaction.deferUpdate()

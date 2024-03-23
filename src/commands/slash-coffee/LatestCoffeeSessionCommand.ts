@@ -54,6 +54,7 @@ export async function execute(interaction: CommandInteraction) {
     reply += `**Coffee Type:** ${request.coffeeType}\n`
     reply += `**Aroma Strength:** ${request.aromaStrength}\n`
     reply += `**Sugar:** ${request.sugar}\n`
+    reply += `**Temperature:** ${request.temperature}\n`
     reply += `**Coffee Crew Person:** ${request.coffeeCrewPersonName}\n\n`
   })
 
