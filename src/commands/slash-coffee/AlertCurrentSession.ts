@@ -78,5 +78,5 @@ export async function execute(interaction: CommandInteraction) {
   }
   //Send DMs to the user ids in the userIdsToAlert array
 
-  await interaction.reply('Alerted coffee crew members! ☕️')
+  return interaction.followUp('Alerted coffee crew members! ☕️')
 }
