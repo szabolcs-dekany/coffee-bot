@@ -55,7 +55,7 @@ export async function execute(interaction: CommandInteraction) {
   const userIdsToAlert = coffeeRequests.map(request => request.coffeeCrewPerson)
 
   logger.info(`User IDs to alert: ${userIdsToAlert}`)
-  const optionalMessage = interaction.options.data[0].value
+  const optionalMessage = interaction.options.data[0]?.value
 
   const actualMessage = optionalMessage
     ? optionalMessage
