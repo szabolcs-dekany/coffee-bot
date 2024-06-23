@@ -40,9 +40,11 @@ client.on(Events.InteractionCreate, async interaction => {
 
   if (interaction.isCommand()) {
     const { commandName } = interaction
-    logger.info(`Handling command ${commandName} 📲`)
     if (commands[commandName as keyof typeof commands]) {
+      logger.info(`Handling command ${commandName} 📲`)
       await commands[commandName as keyof typeof commands].execute(interaction)
+    } else {
+      logger.error(`Command ${commandName} not found! 🤷‍♂️`)
     }
   }
 
