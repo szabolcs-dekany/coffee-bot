@@ -84,10 +84,10 @@ export async function execute(interaction: CommandInteraction) {
         .addOptions(
           new StringSelectMenuOptionBuilder()
             .setLabel('I want the usual ☕️🥛')
-            .setValue('regular'),
+            .setValue('🥛'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Im Barbi and I want an Espresso with milk')
-            .setValue('barbi-espresso-with-milk'),
+            .setValue('☕️'),
         ),
     )
 
@@ -137,13 +137,13 @@ export async function execute(interaction: CommandInteraction) {
         .addOptions(
           new StringSelectMenuOptionBuilder()
             .setLabel('Hot 🥵')
-            .setValue('Hot'),
+            .setValue('🥵'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Room temperature 🌡️')
-            .setValue('Room temperature'),
+            .setValue('🌡️'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Vanilla Ice 🧊')
-            .setValue('Ice coffee'),
+            .setValue('🧊'),
         ),
     )
 
