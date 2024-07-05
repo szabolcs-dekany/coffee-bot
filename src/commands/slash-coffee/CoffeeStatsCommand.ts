@@ -32,6 +32,24 @@ export async function execute(interaction: CommandInteraction) {
       { $limit: 5 },
     ])
 
+    const averageAromaStrength = await CoffeeRequestDocument.aggregate([
+      { $group: { _id: null, average: { $avg: { $toInt: '$aromaStrength' } } } },
+    ])
+
+    // Get the most popular sugar level
+    const popularSugarLevel = await CoffeeRequestDocument.aggregate([
+      { $group: { _id: '$sugar', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 1 },
+    ])
+
+    // Get the most popular temperature
+    const popularTemperature = await CoffeeRequestDocument.aggregate([
+      { $group: { _id: '$temperature', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 1 },
+    ])
+
     let reply = '**Coffee Statistics**\n\n'
 
     reply += '**Top 5 Coffee Types:**\n'
@@ -43,6 +61,10 @@ export async function execute(interaction: CommandInteraction) {
     coffeeCrewStats.forEach(stat => {
       reply += `**${stat._id}:** ${stat.count} coffees\n`
     })
+
+    reply += `\n**Average Aroma Strength:** ${averageAromaStrength[0]?.average.toFixed(2) || 'N/A'}\n`
+    reply += `**Most Popular Sugar Level:** ${popularSugarLevel[0]?._id || 'N/A'} (${popularSugarLevel[0]?.count || 0} requests)\n`
+    reply += `**Most Popular Temperature:** ${popularTemperature[0]?._id || 'N/A'} (${popularTemperature[0]?.count || 0} requests)\n`
 
     await interaction.followUp(reply)
   } catch (error) {

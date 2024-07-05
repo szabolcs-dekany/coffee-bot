@@ -139,8 +139,8 @@ export async function execute(interaction: CommandInteraction) {
             .setLabel('Hot 🥵')
             .setValue('🥵'),
           new StringSelectMenuOptionBuilder()
-            .setLabel('Room temperature 🌡️')
-            .setValue('🌡️'),
+            .setLabel('Room temperature 🏡🛋️')
+            .setValue('🏡🛋️'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Vanilla Ice 🧊')
             .setValue('🧊'),
