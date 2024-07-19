@@ -42,6 +42,21 @@ export async function execute(interaction: CommandInteraction) {
   const coffeeRequests = await CoffeeRequestDocument.find({
     sessionId: latestSession.sessionId,
   })
+
+  const aromaStrengthMap: { [key: string]: number } = {
+    '🫘': 1,
+    '🫘🫘': 2,
+    '🫘🫘🫘': 3,
+    '🫘🫘🫘🫘': 4,
+    '🫘🫘🫘🫘🫘': 5,
+  }
+
+  coffeeRequests.sort((a, b) => {
+    const aStrength = aromaStrengthMap[a.aromaStrength] || 0
+    const bStrength = aromaStrengthMap[b.aromaStrength] || 0
+    return aStrength - bStrength
+  })
+
   let reply = ''
 
   reply += `**Session ID:** ${latestSession.sessionId}\n`
