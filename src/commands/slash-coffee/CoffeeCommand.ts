@@ -86,7 +86,7 @@ export async function execute(interaction: CommandInteraction) {
             .setLabel('I want the usual ☕️🥛')
             .setValue('🥛'),
           new StringSelectMenuOptionBuilder()
-            .setLabel('Im Barbi and I want an Espresso with milk')
+            .setLabel('Im Mark and I like it black ☕️ 🍆')
             .setValue('☕️'),
         ),
     )
@@ -135,9 +135,7 @@ export async function execute(interaction: CommandInteraction) {
         .setCustomId(`${sessionId}|temperature`)
         .setPlaceholder('Milk temperature')
         .addOptions(
-          new StringSelectMenuOptionBuilder()
-            .setLabel('Hot 🥵')
-            .setValue('🥵'),
+          new StringSelectMenuOptionBuilder().setLabel('Hot 🥵').setValue('🥵'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Room temperature 🏡🛋️')
             .setValue('🏡🛋️'),
