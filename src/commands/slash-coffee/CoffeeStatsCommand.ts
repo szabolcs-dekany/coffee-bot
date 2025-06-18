@@ -469,18 +469,20 @@ export async function execute(interaction: CommandInteraction) {
       `✅ Timing analysis completed for ${timingAnalysis.length} time patterns`,
     )
 
-    // === BUILD ENHANCED REPLY ===
-    logger.info('📝 Building enhanced reply with all statistics')
-    let reply = '# ☕️ **Coffee Statistics Dashboard** ☕️\n\n'
+    // === BUILD ENHANCED REPLY (SPLIT INTO TWO PARTS) ===
+    logger.info('📝 Building enhanced reply with all statistics (split into two parts)')
+
+    // PART 1: Basic statistics and core data
+    let reply1 = '# ☕️ **Coffee Statistics Dashboard** ☕️\n\n'
 
     // Basic Stats Section
-    reply += '## 📊 **Basic Statistics**\n'
-    reply += `**Total Coffee Sessions:** ${totalSessions}\n`
-    reply += `**Total Coffee Orders:** ${totalRequests}\n`
-    reply += `**Average Orders per Session:** ${totalSessions > 0 ? (totalRequests / totalSessions).toFixed(1) : 'N/A'}\n\n`
+    reply1 += '## 📊 **Basic Statistics**\n'
+    reply1 += `**Total Coffee Sessions:** ${totalSessions}\n`
+    reply1 += `**Total Coffee Orders:** ${totalRequests}\n`
+    reply1 += `**Average Orders per Session:** ${totalSessions > 0 ? (totalRequests / totalSessions).toFixed(1) : 'N/A'}\n\n`
 
     // Top Coffee Types
-    reply += '## 🏆 **Top 5 Coffee Types**\n'
+    reply1 += '## 🏆 **Top 5 Coffee Types**\n'
     if (coffeeTypeStats.length > 0) {
       coffeeTypeStats.forEach((stat, index) => {
         const emoji =
@@ -491,51 +493,53 @@ export async function execute(interaction: CommandInteraction) {
             : stat._id === '☕️'
               ? 'Black Coffee'
               : stat._id
-        reply += `${emoji} **${typeLabel}:** ${stat.count} orders\n`
+        reply1 += `${emoji} **${typeLabel}:** ${stat.count} orders\n`
       })
     } else {
-      reply += 'No coffee type data available.\n'
+      reply1 += 'No coffee type data available.\n'
     }
-    reply += '\n'
+    reply1 += '\n'
 
     // Top Coffee Drinkers
-    reply += '## 👑 **Top 5 Coffee Enthusiasts**\n'
+    reply1 += '## 👑 **Top 5 Coffee Enthusiasts**\n'
     if (coffeeCrewStats.length > 0) {
       coffeeCrewStats.forEach((stat, index) => {
         const emoji =
           index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⭐'
-        reply += `${emoji} **${stat._id}:** ${stat.count} coffees\n`
+        reply1 += `${emoji} **${stat._id}:** ${stat.count} coffees\n`
       })
     } else {
-      reply += 'No coffee drinker data available.\n'
+      reply1 += 'No coffee drinker data available.\n'
     }
-    reply += '\n'
+    reply1 += '\n'
 
     // Preference Insights
-    reply += '## 🎯 **Preference Insights**\n'
+    reply1 += '## 🎯 **Preference Insights**\n'
     const avgAroma = averageAromaStrength[0]?.average
-    reply += `**Average Aroma Strength:** ${avgAroma && typeof avgAroma === 'number' ? '🫘'.repeat(Math.round(avgAroma)) + ` (${avgAroma.toFixed(1)}/5)` : 'N/A'}\n`
-    reply += `**Most Popular Sugar Level:** ${popularSugarLevel[0]?._id || 'N/A'} (${popularSugarLevel[0]?.count || 0} orders)\n`
-    reply += `**Most Popular Temperature:** ${popularTemperature[0]?._id || 'N/A'} (${popularTemperature[0]?.count || 0} orders)\n\n`
+    reply1 += `**Average Aroma Strength:** ${avgAroma && typeof avgAroma === 'number' ? '🫘'.repeat(Math.round(avgAroma)) + ` (${avgAroma.toFixed(1)}/5)` : 'N/A'}\n`
+    reply1 += `**Most Popular Sugar Level:** ${popularSugarLevel[0]?._id || 'N/A'} (${popularSugarLevel[0]?.count || 0} orders)\n`
+    reply1 += `**Most Popular Temperature:** ${popularTemperature[0]?._id || 'N/A'} (${popularTemperature[0]?.count || 0} orders)\n\n`
 
     // Coffee Personalities
-    reply += '## 🎭 **Coffee Personalities & Achievements**\n'
+    reply1 += '## 🎭 **Coffee Personalities & Achievements**\n'
     if (coffeePurist) {
-      reply += `🖤 **Coffee Purist:** ${coffeePurist._id} (${coffeePurist.totalOrders} black coffees)\n`
+      reply1 += `🖤 **Coffee Purist:** ${coffeePurist._id} (${coffeePurist.totalOrders} black coffees)\n`
     }
     if (sweetTooth && typeof sweetTooth.avgSugar === 'number') {
-      reply += `🍰 **Sweet Tooth:** ${sweetTooth._id} (avg ${sweetTooth.avgSugar.toFixed(1)} sugar level)\n`
+      reply1 += `🍰 **Sweet Tooth:** ${sweetTooth._id} (avg ${sweetTooth.avgSugar.toFixed(1)} sugar level)\n`
     }
     if (caffeineAddict && typeof caffeineAddict.avgAroma === 'number') {
-      reply += `⚡ **Caffeine Addict:** ${caffeineAddict._id} (avg ${caffeineAddict.avgAroma.toFixed(1)} aroma strength)\n`
+      reply1 += `⚡ **Caffeine Addict:** ${caffeineAddict._id} (avg ${caffeineAddict.avgAroma.toFixed(1)} aroma strength)\n`
     }
     if (consistentCrew) {
-      reply += `🏅 **Most Consistent:** ${consistentCrew._id} (${consistentCrew.totalOrders} total orders)\n`
+      reply1 += `🏅 **Most Consistent:** ${consistentCrew._id} (${consistentCrew.totalOrders} total orders)\n`
     }
-    reply += '\n'
+
+    // PART 2: Advanced statistics and insights
+    let reply2 = '# ☕️ **Coffee Statistics Dashboard (Part 2)** ☕️\n\n'
 
     // Session Trends
-    reply += '## 📈 **Session Trends & Peak Times**\n'
+    reply2 += '## 📈 **Session Trends & Peak Times**\n'
     if (sessionTrends.length > 0) {
       const dayNames = [
         '',
@@ -560,15 +564,15 @@ export async function execute(interaction: CommandInteraction) {
           typeof trend.avgCrewSize === 'number'
             ? trend.avgCrewSize.toFixed(1)
             : 'N/A'
-        reply += `📅 **Peak Time ${index + 1}:** ${dayName}s at ${timeLabel} (${trend.sessionCount} sessions, avg ${avgCrewSize} people)\n`
+        reply2 += `📅 **Peak Time ${index + 1}:** ${dayName}s at ${timeLabel} (${trend.sessionCount} sessions, avg ${avgCrewSize} people)\n`
       })
     } else {
-      reply += 'No session trend data available.\n'
+      reply2 += 'No session trend data available.\n'
     }
-    reply += '\n'
+    reply2 += '\n'
 
     // Popular Combinations
-    reply += '## 🧪 **Popular Coffee Recipes**\n'
+    reply2 += '## 🧪 **Popular Coffee Recipes**\n'
     if (popularCombinations.length > 0) {
       popularCombinations.slice(0, 3).forEach((combo, index) => {
         const typeLabel =
@@ -578,15 +582,15 @@ export async function execute(interaction: CommandInteraction) {
               ? 'Black Coffee'
               : combo._id.type
         const tempLabel = temperatureMap[combo._id.temp] || combo._id.temp
-        reply += `${index + 1}. **${typeLabel}** + ${combo._id.aroma} + ${combo._id.sugar} + ${tempLabel} (${combo.count} orders by ${combo.users.length} people)\n`
+        reply2 += `${index + 1}. **${typeLabel}** + ${combo._id.aroma} + ${combo._id.sugar} + ${tempLabel} (${combo.count} orders by ${combo.users.length} people)\n`
       })
     } else {
-      reply += 'No combination data available.\n'
+      reply2 += 'No combination data available.\n'
     }
-    reply += '\n'
+    reply2 += '\n'
 
     // Participation Stats
-    reply += '## 🎯 **Participation Champions**\n'
+    reply2 += '## 🎯 **Participation Champions**\n'
     if (participationStats.length > 0) {
       participationStats.slice(0, 3).forEach((stat, index) => {
         const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
@@ -594,31 +598,31 @@ export async function execute(interaction: CommandInteraction) {
           typeof stat.participationRate === 'number'
             ? stat.participationRate.toFixed(1)
             : 'N/A'
-        reply += `${emoji} **${stat._id}:** ${participationRate}% participation (${stat.participationCount}/${totalSessions} sessions)\n`
+        reply2 += `${emoji} **${stat._id}:** ${participationRate}% participation (${stat.participationCount}/${totalSessions} sessions)\n`
       })
     } else {
-      reply += 'No participation data available.\n'
+      reply2 += 'No participation data available.\n'
     }
-    reply += '\n'
+    reply2 += '\n'
 
     // Estimated Coffee Time Statistics
-    reply += '## ⏰ **Coffee Timing Insights**\n'
+    reply2 += '## ⏰ **Coffee Timing Insights**\n'
     if (estimatedTimeStats.length > 0) {
-      reply += '**Most Popular Estimated Times:**\n'
+      reply2 += '**Most Popular Estimated Times:**\n'
       estimatedTimeStats.slice(0, 3).forEach((stat, index) => {
         const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
         const avgCrewSize =
           typeof stat.avgCrewSize === 'number'
             ? stat.avgCrewSize.toFixed(1)
             : 'N/A'
-        reply += `${emoji} **"${stat._id}":** ${stat.count} sessions (avg ${avgCrewSize} people)\n`
+        reply2 += `${emoji} **"${stat._id}":** ${stat.count} sessions (avg ${avgCrewSize} people)\n`
       })
     } else {
-      reply += 'No estimated time data available.\n'
+      reply2 += 'No estimated time data available.\n'
     }
 
     if (timingAnalysis.length > 0) {
-      reply += '\n**Most Common Time Patterns:**\n'
+      reply2 += '\n**Most Common Time Patterns:**\n'
       timingAnalysis.slice(0, 3).forEach((timing, index) => {
         const hour = timing._id.hour
         const minute = timing._id.minute.toString().padStart(2, '0')
@@ -632,7 +636,7 @@ export async function execute(interaction: CommandInteraction) {
           typeof timing.avgCrewSize === 'number'
             ? timing.avgCrewSize.toFixed(1)
             : 'N/A'
-        reply += `⏰ **${timeLabel}:** ${timing.count} sessions (avg ${avgCrewSize} people)\n`
+        reply2 += `⏰ **${timeLabel}:** ${timing.count} sessions (avg ${avgCrewSize} people)\n`
       })
 
       // Add some timing insights
@@ -651,20 +655,20 @@ export async function execute(interaction: CommandInteraction) {
           .filter(t => t._id.hour >= 18 || t._id.hour < 6)
           .reduce((sum, t) => sum + t.count, 0)
 
-        reply += '\n**Time Period Preferences:**\n'
+        reply2 += '\n**Time Period Preferences:**\n'
         if (morningCount > 0)
-          reply += `🌅 **Morning (6AM-12PM):** ${morningCount} sessions (${((morningCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
+          reply2 += `🌅 **Morning (6AM-12PM):** ${morningCount} sessions (${((morningCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
         if (afternoonCount > 0)
-          reply += `☀️ **Afternoon (12PM-6PM):** ${afternoonCount} sessions (${((afternoonCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
+          reply2 += `☀️ **Afternoon (12PM-6PM):** ${afternoonCount} sessions (${((afternoonCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
         if (eveningCount > 0)
-          reply += `🌙 **Evening (6PM-6AM):** ${eveningCount} sessions (${((eveningCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
+          reply2 += `🌙 **Evening (6PM-6AM):** ${eveningCount} sessions (${((eveningCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
       }
     }
-    reply += '\n'
+    reply2 += '\n'
 
     // Recent Trends
     if (recentTrends.length > 0) {
-      reply += '## 🔥 **Recent Trends (Last 7 Days)**\n'
+      reply2 += '## 🔥 **Recent Trends (Last 7 Days)**\n'
       recentTrends.forEach(trend => {
         const typeLabel =
           trend._id === '🥛'
@@ -672,17 +676,18 @@ export async function execute(interaction: CommandInteraction) {
             : trend._id === '☕️'
               ? 'Black Coffee'
               : trend._id
-        reply += `📊 **${typeLabel}:** ${trend.recentCount} recent orders\n`
+        reply2 += `📊 **${typeLabel}:** ${trend.recentCount} recent orders\n`
       })
-      reply += '\n'
+      reply2 += '\n'
     }
 
-    reply += '---\n*Coffee statistics powered by ☕️ Coffee Bot*\n'
-    reply += '*All times displayed in Budapest timezone (Europe/Budapest)*'
+    reply2 += '---\n*Coffee statistics powered by ☕️ Coffee Bot*\n'
+    reply2 += '*All times displayed in Budapest timezone (Europe/Budapest)*'
 
-    logger.info('✅ Coffee statistics reply built successfully')
-    logger.info({
-      replyLength: reply.length,
+    logger.info('✅ Coffee statistics replies built successfully', {
+      reply1Length: reply1.length,
+      reply2Length: reply2.length,
+      totalLength: reply1.length + reply2.length,
       totalSessions,
       totalRequests,
       coffeeTypesFound: coffeeTypeStats.length,
@@ -694,8 +699,15 @@ export async function execute(interaction: CommandInteraction) {
       timingPatternsFound: timingAnalysis.length,
     })
 
-    await interaction.followUp(reply)
-    logger.info('🎉 Coffee statistics sent successfully to Discord')
+    // Send both parts with a small delay to ensure proper ordering
+    await interaction.followUp(reply1)
+    logger.info('🎉 Coffee statistics part 1 sent successfully to Discord')
+
+    // Small delay to ensure messages appear in order
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    await interaction.followUp(reply2)
+    logger.info('🎉 Coffee statistics part 2 sent successfully to Discord')
   } catch (error) {
     logger.error('Error fetching coffee stats:', error)
     await interaction.followUp(
