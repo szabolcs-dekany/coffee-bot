@@ -85,7 +85,10 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: CommandInteraction) {
   await interaction.deferReply()
 
+  logger.info('🚀 Starting coffee statistics generation...')
+
   try {
+    logger.info('📋 Setting up mapping objects for data processing')
     // Define mapping objects for consistent use
     const aromaStrengthMap = {
       '🫘': 1,
@@ -110,21 +113,31 @@ export async function execute(interaction: CommandInteraction) {
     }
 
     // === EXISTING STATISTICS ===
+    logger.info('📊 Fetching basic coffee statistics...')
 
     // Get the most popular coffee types
+    logger.info('☕ Calculating most popular coffee types')
     const coffeeTypeStats = (await CoffeeRequestDocument.aggregate([
       { $group: { _id: '$coffeeType', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 },
     ])) as CoffeeTypeStats[]
+    logger.info(`✅ Found ${coffeeTypeStats.length} coffee types`, {
+      coffeeTypeStats,
+    })
 
     // Get the person who drinks the most coffee
+    logger.info('👥 Calculating top coffee drinkers')
     const coffeeCrewStats = (await CoffeeRequestDocument.aggregate([
       { $group: { _id: '$coffeeCrewPersonName', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 },
     ])) as CoffeeTypeStats[]
+    logger.info(`✅ Found ${coffeeCrewStats.length} coffee crew members`, {
+      coffeeCrewStats,
+    })
 
+    logger.info('🫘 Calculating average aroma strength')
     const averageAromaStrength = await CoffeeRequestDocument.aggregate([
       {
         $group: {
@@ -145,8 +158,12 @@ export async function execute(interaction: CommandInteraction) {
         },
       },
     ])
+    logger.info('✅ Average aroma strength calculated', {
+      averageAromaStrength,
+    })
 
     // Get the most popular sugar level
+    logger.info('🍰 Calculating most popular sugar level')
     const popularSugarLevel = await CoffeeRequestDocument.aggregate([
       {
         $group: {
@@ -161,8 +178,10 @@ export async function execute(interaction: CommandInteraction) {
         $limit: 1,
       },
     ])
+    logger.info('✅ Popular sugar level found', { popularSugarLevel })
 
     // Get the most popular temperature
+    logger.info('🌡️ Calculating most popular temperature')
     const popularTemperature = await CoffeeRequestDocument.aggregate([
       {
         $group: {
@@ -177,16 +196,31 @@ export async function execute(interaction: CommandInteraction) {
         $limit: 1,
       },
     ])
+    logger.info('✅ Popular temperature found', { popularTemperature })
 
     // === NEW STATISTICS ===
+    logger.info('🆕 Starting advanced statistics calculations...')
 
-    // 1. Coffee Session Trends & Peak Times
+    // 1. Coffee Session Trends & Peak Times (Budapest timezone)
+    logger.info(
+      '📈 Calculating session trends and peak times (Budapest timezone)',
+    )
     const sessionTrends = (await CoffeeSessionDocument.aggregate([
       {
         $group: {
           _id: {
-            hour: { $hour: '$startDateTime' },
-            dayOfWeek: { $dayOfWeek: '$startDateTime' },
+            hour: {
+              $hour: {
+                date: '$startDateTime',
+                timezone: 'Europe/Budapest',
+              },
+            },
+            dayOfWeek: {
+              $dayOfWeek: {
+                date: '$startDateTime',
+                timezone: 'Europe/Budapest',
+              },
+            },
           },
           sessionCount: { $sum: 1 },
           avgCrewSize: { $avg: '$coffeeCrewNumber' },
@@ -195,11 +229,17 @@ export async function execute(interaction: CommandInteraction) {
       { $sort: { sessionCount: -1 } },
       { $limit: 3 },
     ])) as SessionTrend[]
+    logger.info('✅ Session trends calculated', { sessionTrends })
 
+    logger.info('🔢 Counting total sessions and requests')
     const totalSessions = await CoffeeSessionDocument.countDocuments()
     const totalRequests = await CoffeeRequestDocument.countDocuments()
+    logger.info(
+      `✅ Totals calculated: ${totalSessions} sessions, ${totalRequests} requests`,
+    )
 
     // 2. Coffee Personality Profiles & Achievements
+    logger.info('🎭 Calculating coffee personality profiles and achievements')
     const coffeePersonalities = (await CoffeeRequestDocument.aggregate([
       {
         $group: {
@@ -259,8 +299,12 @@ export async function execute(interaction: CommandInteraction) {
         },
       },
     ])) as CoffeePersonality[]
+    logger.info(
+      `✅ Coffee personalities calculated for ${coffeePersonalities.length} people`,
+    )
 
     // Find personalities
+    logger.info('🔍 Identifying coffee personality types')
     const coffeePurist = coffeePersonalities.find(
       p => p.blackCoffeePercentage === 100 && p.totalOrders >= 3,
     )
@@ -276,8 +320,15 @@ export async function execute(interaction: CommandInteraction) {
       (max, p) => (p.totalOrders > (max?.totalOrders || 0) ? p : max),
       null as CoffeePersonality | null,
     )
+    logger.info('✅ Personalities identified:', {
+      coffeePurist: coffeePurist?._id,
+      sweetTooth: sweetTooth?._id,
+      caffeineAddict: caffeineAddict?._id,
+      consistentCrew: consistentCrew?._id,
+    })
 
     // 3. Coffee Preference Combinations & Patterns
+    logger.info('🧪 Calculating popular coffee combinations and patterns')
     const popularCombinations = (await CoffeeRequestDocument.aggregate([
       {
         $group: {
@@ -294,8 +345,10 @@ export async function execute(interaction: CommandInteraction) {
       { $sort: { count: -1 } },
       { $limit: 5 },
     ])) as PopularCombination[]
+    logger.info(`✅ Found ${popularCombinations.length} popular combinations`)
 
     // 4. Coffee Streaks & Participation Stats
+    logger.info('🎯 Calculating participation statistics and streaks')
     const participationStats = (await CoffeeRequestDocument.aggregate([
       {
         $lookup: {
@@ -328,8 +381,12 @@ export async function execute(interaction: CommandInteraction) {
       },
       { $sort: { participationRate: -1 } },
     ])) as ParticipationStat[]
+    logger.info(
+      `✅ Participation stats calculated for ${participationStats.length} people`,
+    )
 
     // 5. Coffee Evolution & Trends (Recent vs Overall)
+    logger.info('🔥 Calculating recent trends (last 7 days)')
     const recentDate = new Date()
     recentDate.setDate(recentDate.getDate() - 7) // Last 7 days
 
@@ -351,59 +408,69 @@ export async function execute(interaction: CommandInteraction) {
         },
       },
     ])
+    logger.info(
+      `✅ Recent trends calculated for ${recentTrends.length} coffee types`,
+    )
 
     // 6. Estimated Coffee Time Statistics
-    const estimatedTimeStats = await CoffeeSessionDocument.aggregate([
+    logger.info('⏰ Calculating estimated coffee time statistics')
+    const estimatedTimeStats = (await CoffeeSessionDocument.aggregate([
       {
         $group: {
           _id: '$estimatedTimeOfCoffee',
           count: { $sum: 1 },
-          avgCrewSize: { $avg: '$coffeeCrewNumber' }
-        }
+          avgCrewSize: { $avg: '$coffeeCrewNumber' },
+        },
       },
       { $sort: { count: -1 } },
-      { $limit: 5 }
-    ]) as EstimatedTimeStats[]
+      { $limit: 5 },
+    ])) as EstimatedTimeStats[]
+    logger.info(`✅ Found ${estimatedTimeStats.length} estimated time patterns`)
 
     // Parse estimated times to analyze timing patterns
-    const timingAnalysis = await CoffeeSessionDocument.aggregate([
+    logger.info('🕐 Parsing time patterns from estimated coffee times')
+    const timingAnalysis = (await CoffeeSessionDocument.aggregate([
       {
         $addFields: {
           // Try to parse time from estimatedTimeOfCoffee string
           parsedTime: {
             $regexFind: {
               input: '$estimatedTimeOfCoffee',
-              regex: /(\d{1,2}):(\d{2})/
-            }
-          }
-        }
+              regex: /(\d{1,2}):(\d{2})/,
+            },
+          },
+        },
       },
       {
         $match: {
-          'parsedTime.match': { $ne: null }
-        }
+          'parsedTime.match': { $ne: null },
+        },
       },
       {
         $addFields: {
           hour: { $toInt: { $arrayElemAt: ['$parsedTime.captures', 0] } },
-          minute: { $toInt: { $arrayElemAt: ['$parsedTime.captures', 1] } }
-        }
+          minute: { $toInt: { $arrayElemAt: ['$parsedTime.captures', 1] } },
+        },
       },
       {
         $group: {
           _id: {
             hour: '$hour',
-            minute: '$minute'
+            minute: '$minute',
           },
           count: { $sum: 1 },
-          avgCrewSize: { $avg: '$coffeeCrewNumber' }
-        }
+          avgCrewSize: { $avg: '$coffeeCrewNumber' },
+        },
       },
       { $sort: { count: -1 } },
-      { $limit: 5 }
-    ]) as TimingAnalysis[]
+      { $limit: 5 },
+    ])) as TimingAnalysis[]
+    logger.info(
+      `✅ Timing analysis completed for ${timingAnalysis.length} time patterns`,
+    )
 
     // === BUILD ENHANCED REPLY ===
+    logger.info('📝 Building enhanced reply with all statistics')
     let reply = '# ☕️ **Coffee Statistics Dashboard** ☕️\n\n'
 
     // Basic Stats Section
@@ -540,7 +607,10 @@ export async function execute(interaction: CommandInteraction) {
       reply += '**Most Popular Estimated Times:**\n'
       estimatedTimeStats.slice(0, 3).forEach((stat, index) => {
         const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
-        const avgCrewSize = typeof stat.avgCrewSize === 'number' ? stat.avgCrewSize.toFixed(1) : 'N/A'
+        const avgCrewSize =
+          typeof stat.avgCrewSize === 'number'
+            ? stat.avgCrewSize.toFixed(1)
+            : 'N/A'
         reply += `${emoji} **"${stat._id}":** ${stat.count} sessions (avg ${avgCrewSize} people)\n`
       })
     } else {
@@ -552,26 +622,42 @@ export async function execute(interaction: CommandInteraction) {
       timingAnalysis.slice(0, 3).forEach((timing, index) => {
         const hour = timing._id.hour
         const minute = timing._id.minute.toString().padStart(2, '0')
-        const timeLabel = hour < 12
-          ? `${hour}:${minute} AM`
-          : hour === 12
-            ? `12:${minute} PM`
-            : `${hour - 12}:${minute} PM`
-        const avgCrewSize = typeof timing.avgCrewSize === 'number' ? timing.avgCrewSize.toFixed(1) : 'N/A'
+        const timeLabel =
+          hour < 12
+            ? `${hour}:${minute} AM`
+            : hour === 12
+              ? `12:${minute} PM`
+              : `${hour - 12}:${minute} PM`
+        const avgCrewSize =
+          typeof timing.avgCrewSize === 'number'
+            ? timing.avgCrewSize.toFixed(1)
+            : 'N/A'
         reply += `⏰ **${timeLabel}:** ${timing.count} sessions (avg ${avgCrewSize} people)\n`
       })
 
       // Add some timing insights
-      const totalParsedSessions = timingAnalysis.reduce((sum, timing) => sum + timing.count, 0)
+      const totalParsedSessions = timingAnalysis.reduce(
+        (sum, timing) => sum + timing.count,
+        0,
+      )
       if (totalParsedSessions > 0) {
-        const morningCount = timingAnalysis.filter(t => t._id.hour >= 6 && t._id.hour < 12).reduce((sum, t) => sum + t.count, 0)
-        const afternoonCount = timingAnalysis.filter(t => t._id.hour >= 12 && t._id.hour < 18).reduce((sum, t) => sum + t.count, 0)
-        const eveningCount = timingAnalysis.filter(t => t._id.hour >= 18 || t._id.hour < 6).reduce((sum, t) => sum + t.count, 0)
+        const morningCount = timingAnalysis
+          .filter(t => t._id.hour >= 6 && t._id.hour < 12)
+          .reduce((sum, t) => sum + t.count, 0)
+        const afternoonCount = timingAnalysis
+          .filter(t => t._id.hour >= 12 && t._id.hour < 18)
+          .reduce((sum, t) => sum + t.count, 0)
+        const eveningCount = timingAnalysis
+          .filter(t => t._id.hour >= 18 || t._id.hour < 6)
+          .reduce((sum, t) => sum + t.count, 0)
 
         reply += '\n**Time Period Preferences:**\n'
-        if (morningCount > 0) reply += `🌅 **Morning (6AM-12PM):** ${morningCount} sessions (${((morningCount/totalParsedSessions)*100).toFixed(1)}%)\n`
-        if (afternoonCount > 0) reply += `☀️ **Afternoon (12PM-6PM):** ${afternoonCount} sessions (${((afternoonCount/totalParsedSessions)*100).toFixed(1)}%)\n`
-        if (eveningCount > 0) reply += `🌙 **Evening (6PM-6AM):** ${eveningCount} sessions (${((eveningCount/totalParsedSessions)*100).toFixed(1)}%)\n`
+        if (morningCount > 0)
+          reply += `🌅 **Morning (6AM-12PM):** ${morningCount} sessions (${((morningCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
+        if (afternoonCount > 0)
+          reply += `☀️ **Afternoon (12PM-6PM):** ${afternoonCount} sessions (${((afternoonCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
+        if (eveningCount > 0)
+          reply += `🌙 **Evening (6PM-6AM):** ${eveningCount} sessions (${((eveningCount / totalParsedSessions) * 100).toFixed(1)}%)\n`
       }
     }
     reply += '\n'
@@ -594,7 +680,22 @@ export async function execute(interaction: CommandInteraction) {
     reply += '---\n*Coffee statistics powered by ☕️ Coffee Bot*\n'
     reply += '*All times displayed in Budapest timezone (Europe/Budapest)*'
 
+    logger.info('✅ Coffee statistics reply built successfully')
+    logger.info({
+      replyLength: reply.length,
+      totalSessions,
+      totalRequests,
+      coffeeTypesFound: coffeeTypeStats.length,
+      crewMembersFound: coffeeCrewStats.length,
+      personalitiesFound: coffeePersonalities.length,
+      combinationsFound: popularCombinations.length,
+      participationStatsFound: participationStats.length,
+      estimatedTimesFound: estimatedTimeStats.length,
+      timingPatternsFound: timingAnalysis.length,
+    })
+
     await interaction.followUp(reply)
+    logger.info('🎉 Coffee statistics sent successfully to Discord')
   } catch (error) {
     logger.error('Error fetching coffee stats:', error)
     await interaction.followUp(
