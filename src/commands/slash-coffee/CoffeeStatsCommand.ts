@@ -55,6 +55,21 @@ interface ParticipationStat {
   participationRate: number
 }
 
+interface EstimatedTimeStats {
+  _id: string
+  count: number
+  avgCrewSize: number
+}
+
+interface TimingAnalysis {
+  _id: {
+    hour: number
+    minute: number
+  }
+  count: number
+  avgCrewSize: number
+}
+
 const logger = pino({
   name: 'coffee-bot-coffee-stats-command',
   level: 'debug',
@@ -337,6 +352,57 @@ export async function execute(interaction: CommandInteraction) {
       },
     ])
 
+    // 6. Estimated Coffee Time Statistics
+    const estimatedTimeStats = await CoffeeSessionDocument.aggregate([
+      {
+        $group: {
+          _id: '$estimatedTimeOfCoffee',
+          count: { $sum: 1 },
+          avgCrewSize: { $avg: '$coffeeCrewNumber' }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]) as EstimatedTimeStats[]
+
+    // Parse estimated times to analyze timing patterns
+    const timingAnalysis = await CoffeeSessionDocument.aggregate([
+      {
+        $addFields: {
+          // Try to parse time from estimatedTimeOfCoffee string
+          parsedTime: {
+            $regexFind: {
+              input: '$estimatedTimeOfCoffee',
+              regex: /(\d{1,2}):(\d{2})/
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          'parsedTime.match': { $ne: null }
+        }
+      },
+      {
+        $addFields: {
+          hour: { $toInt: { $arrayElemAt: ['$parsedTime.captures', 0] } },
+          minute: { $toInt: { $arrayElemAt: ['$parsedTime.captures', 1] } }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            hour: '$hour',
+            minute: '$minute'
+          },
+          count: { $sum: 1 },
+          avgCrewSize: { $avg: '$coffeeCrewNumber' }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]) as TimingAnalysis[]
+
     // === BUILD ENHANCED REPLY ===
     let reply = '# ☕️ **Coffee Statistics Dashboard** ☕️\n\n'
 
@@ -468,6 +534,48 @@ export async function execute(interaction: CommandInteraction) {
     }
     reply += '\n'
 
+    // Estimated Coffee Time Statistics
+    reply += '## ⏰ **Coffee Timing Insights**\n'
+    if (estimatedTimeStats.length > 0) {
+      reply += '**Most Popular Estimated Times:**\n'
+      estimatedTimeStats.slice(0, 3).forEach((stat, index) => {
+        const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
+        const avgCrewSize = typeof stat.avgCrewSize === 'number' ? stat.avgCrewSize.toFixed(1) : 'N/A'
+        reply += `${emoji} **"${stat._id}":** ${stat.count} sessions (avg ${avgCrewSize} people)\n`
+      })
+    } else {
+      reply += 'No estimated time data available.\n'
+    }
+
+    if (timingAnalysis.length > 0) {
+      reply += '\n**Most Common Time Patterns:**\n'
+      timingAnalysis.slice(0, 3).forEach((timing, index) => {
+        const hour = timing._id.hour
+        const minute = timing._id.minute.toString().padStart(2, '0')
+        const timeLabel = hour < 12
+          ? `${hour}:${minute} AM`
+          : hour === 12
+            ? `12:${minute} PM`
+            : `${hour - 12}:${minute} PM`
+        const avgCrewSize = typeof timing.avgCrewSize === 'number' ? timing.avgCrewSize.toFixed(1) : 'N/A'
+        reply += `⏰ **${timeLabel}:** ${timing.count} sessions (avg ${avgCrewSize} people)\n`
+      })
+
+      // Add some timing insights
+      const totalParsedSessions = timingAnalysis.reduce((sum, timing) => sum + timing.count, 0)
+      if (totalParsedSessions > 0) {
+        const morningCount = timingAnalysis.filter(t => t._id.hour >= 6 && t._id.hour < 12).reduce((sum, t) => sum + t.count, 0)
+        const afternoonCount = timingAnalysis.filter(t => t._id.hour >= 12 && t._id.hour < 18).reduce((sum, t) => sum + t.count, 0)
+        const eveningCount = timingAnalysis.filter(t => t._id.hour >= 18 || t._id.hour < 6).reduce((sum, t) => sum + t.count, 0)
+
+        reply += '\n**Time Period Preferences:**\n'
+        if (morningCount > 0) reply += `🌅 **Morning (6AM-12PM):** ${morningCount} sessions (${((morningCount/totalParsedSessions)*100).toFixed(1)}%)\n`
+        if (afternoonCount > 0) reply += `☀️ **Afternoon (12PM-6PM):** ${afternoonCount} sessions (${((afternoonCount/totalParsedSessions)*100).toFixed(1)}%)\n`
+        if (eveningCount > 0) reply += `🌙 **Evening (6PM-6AM):** ${eveningCount} sessions (${((eveningCount/totalParsedSessions)*100).toFixed(1)}%)\n`
+      }
+    }
+    reply += '\n'
+
     // Recent Trends
     if (recentTrends.length > 0) {
       reply += '## 🔥 **Recent Trends (Last 7 Days)**\n'
@@ -483,7 +591,8 @@ export async function execute(interaction: CommandInteraction) {
       reply += '\n'
     }
 
-    reply += '---\n*Coffee statistics powered by ☕️ Coffee Bot*'
+    reply += '---\n*Coffee statistics powered by ☕️ Coffee Bot*\n'
+    reply += '*All times displayed in Budapest timezone (Europe/Budapest)*'
 
     await interaction.followUp(reply)
   } catch (error) {

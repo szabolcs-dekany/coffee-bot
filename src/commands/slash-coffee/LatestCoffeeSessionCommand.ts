@@ -1,6 +1,7 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
+import { formatBudapestTime } from '../../utils/dateUtils'
 import pino from 'pino'
 
 const logger = pino({
@@ -60,7 +61,7 @@ export async function execute(interaction: CommandInteraction) {
   let reply = ''
 
   reply += `**Session ID:** ${latestSession.sessionId}\n`
-  reply += `**Start Date Time:** ${latestSession.startDateTime}\n`
+  reply += `**Start Date Time:** ${formatBudapestTime(latestSession.startDateTime)} (Budapest time)\n`
   reply += `**Estimate Time of Coffee:** ${latestSession.estimatedTimeOfCoffee}\n`
   reply += `**Number of coffee crew people:** ${latestSession.coffeeCrewNumber}\n\n`
 
