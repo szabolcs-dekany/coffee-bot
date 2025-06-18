@@ -9,6 +9,8 @@ export interface ICoffeeRequest extends Document {
   temperature: string
   coffeeCrewPerson: string
   coffeeCrewPersonName: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 const CoffeeRequestSchema: Schema = new Schema({
@@ -19,6 +21,8 @@ const CoffeeRequestSchema: Schema = new Schema({
   temperature: { type: String, required: false },
   coffeeCrewPerson: { type: String, required: true },
   coffeeCrewPersonName: { type: String, required: true },
+}, {
+  timestamps: true // This adds createdAt and updatedAt fields automatically
 })
 
 export const CoffeeRequestDocument = mongoose.model<ICoffeeRequest>(
