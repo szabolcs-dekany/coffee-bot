@@ -23,6 +23,8 @@ const FeedbackSchema: Schema = new Schema(
   },
 )
 
+FeedbackSchema.index({ sessionId: 1, userId: 1 }, { unique: true })
+
 export const FeedbackDocument = mongoose.model<ICoffeeFeedback>(
   'coffee_feedback',
   FeedbackSchema,
