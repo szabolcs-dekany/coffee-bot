@@ -17,6 +17,7 @@ const CoffeeRequestSchema: Schema = new Schema(
   {
     sessionId: { type: String, required: true },
     coffeeType: { type: String, required: false },
+    milkType: { type: String, required: false },
     aromaStrength: { type: String, required: false },
     sugar: { type: String, required: false },
     temperature: { type: String, required: false },
