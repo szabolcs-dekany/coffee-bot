@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js'
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
 import { FeedbackDocument } from '../../documents/FeedbackDocument'
@@ -36,18 +36,14 @@ export const data = new SlashCommandBuilder()
       .setRequired(false),
   )
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply({ ephemeral: true })
 
   const userName = interaction.user.displayName || interaction.user.username
   const userId = interaction.user.id
-  const rating = interaction.options.data.find(opt => opt.name === 'rating')
-    ?.value as number
-  const comment = interaction.options.data.find(opt => opt.name === 'comment')
-    ?.value as string | undefined
-  const sessionIdOption = interaction.options.data.find(
-    opt => opt.name === 'session-id',
-  )?.value as string | undefined
+  const rating = interaction.options.getInteger('rating', true)
+  const comment = interaction.options.getString('comment') ?? undefined
+  const sessionIdOption = interaction.options.getString('session-id')
 
   logger.info(`🚀 ${userName} is rating coffee with ${rating} stars`)
 

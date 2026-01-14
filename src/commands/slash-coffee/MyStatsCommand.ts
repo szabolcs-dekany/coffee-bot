@@ -86,7 +86,7 @@ export async function execute(interaction: CommandInteraction) {
       logger.info(`❌ No coffee orders found for ${userName}`)
       await interaction.followUp({
         content:
-          "You haven't ordered any coffee yet! ☕️\nStart ordering to see your personalized statistics.",
+          'You haven\'t ordered any coffee yet! ☕️\nStart ordering to see your personalized statistics.',
         ephemeral: true,
       })
       return

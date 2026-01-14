@@ -13,17 +13,20 @@ export interface ICoffeeRequest extends Document {
   updatedAt?: Date
 }
 
-const CoffeeRequestSchema: Schema = new Schema({
-  sessionId: { type: String, required: true },
-  coffeeType: { type: String, required: false },
-  aromaStrength: { type: String, required: false },
-  sugar: { type: String, required: false },
-  temperature: { type: String, required: false },
-  coffeeCrewPerson: { type: String, required: true },
-  coffeeCrewPersonName: { type: String, required: true },
-}, {
-  timestamps: true // This adds createdAt and updatedAt fields automatically
-})
+const CoffeeRequestSchema: Schema = new Schema(
+  {
+    sessionId: { type: String, required: true },
+    coffeeType: { type: String, required: false },
+    aromaStrength: { type: String, required: false },
+    sugar: { type: String, required: false },
+    temperature: { type: String, required: false },
+    coffeeCrewPerson: { type: String, required: true },
+    coffeeCrewPersonName: { type: String, required: true },
+  },
+  {
+    timestamps: true, // This adds createdAt and updatedAt fields automatically
+  },
+)
 
 export const CoffeeRequestDocument = mongoose.model<ICoffeeRequest>(
   'coffee_request',

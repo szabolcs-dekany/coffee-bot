@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js'
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { FeedbackDocument } from '../../documents/FeedbackDocument'
 import pino from 'pino'
@@ -21,12 +21,10 @@ export const data = new SlashCommandBuilder()
       .setRequired(false),
   )
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply()
 
-  const sessionIdOption = interaction.options.data.find(
-    opt => opt.name === 'session-id',
-  )?.value as string | undefined
+  const sessionIdOption = interaction.options.getString('session-id')
 
   logger.info('🚀 Fetching coffee feedback...')
 
