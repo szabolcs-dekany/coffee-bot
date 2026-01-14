@@ -470,7 +470,9 @@ export async function execute(interaction: CommandInteraction) {
     )
 
     // === BUILD ENHANCED REPLY (SPLIT INTO TWO PARTS) ===
-    logger.info('📝 Building enhanced reply with all statistics (split into two parts)')
+    logger.info(
+      '📝 Building enhanced reply with all statistics (split into two parts)',
+    )
 
     // PART 1: Basic statistics and core data
     let reply1 = '# ☕️ **Coffee Statistics Dashboard** ☕️\n\n'
@@ -623,7 +625,7 @@ export async function execute(interaction: CommandInteraction) {
 
     if (timingAnalysis.length > 0) {
       reply2 += '\n**Most Common Time Patterns:**\n'
-      timingAnalysis.slice(0, 3).forEach((timing, index) => {
+      timingAnalysis.slice(0, 3).forEach(timing => {
         const hour = timing._id.hour
         const minute = timing._id.minute.toString().padStart(2, '0')
         const timeLabel =
