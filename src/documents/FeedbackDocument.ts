@@ -7,6 +7,7 @@ export interface ICoffeeFeedback extends Document {
   rating: number
   comment?: string
   createdAt?: Date
+  updatedAt?: Date
 }
 
 const FeedbackSchema: Schema = new Schema(
