@@ -69,6 +69,20 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       logger.info(`✅ Using latest session: ${targetSessionId}`)
     }
 
+    logger.info(`🔍 Validating session ${targetSessionId} exists`)
+    const session = await CoffeeSessionDocument.findOne({
+      sessionId: targetSessionId,
+    })
+
+    if (!session) {
+      logger.info(`❌ Session ${targetSessionId} not found`)
+      await interaction.followUp({
+        content: 'Session not found!',
+        ephemeral: true,
+      })
+      return
+    }
+
     logger.info(
       `🔍 Checking if user ordered coffee in session ${targetSessionId}`,
     )
