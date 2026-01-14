@@ -8,7 +8,10 @@
  * @param includeSeconds - Whether to include seconds in the output
  * @returns Formatted date string in Budapest timezone
  */
-export function formatBudapestTime(date: Date, includeSeconds: boolean = true): string {
+export function formatBudapestTime(
+  date: Date,
+  includeSeconds: boolean = true,
+): string {
   const options: Intl.DateTimeFormatOptions = {
     timeZone: 'Europe/Budapest',
     year: 'numeric',
@@ -16,7 +19,7 @@ export function formatBudapestTime(date: Date, includeSeconds: boolean = true): 
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    hour12: false,
   }
 
   if (includeSeconds) {
@@ -36,7 +39,7 @@ export function formatBudapestDate(date: Date): string {
     timeZone: 'Europe/Budapest',
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit'
+    day: '2-digit',
   })
 }
 
@@ -50,7 +53,7 @@ export function formatBudapestTimeOnly(date: Date): string {
     timeZone: 'Europe/Budapest',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    hour12: false,
   })
 }
 
@@ -61,9 +64,11 @@ export function formatBudapestTimeOnly(date: Date): string {
 export function getBudapestNow(): Date {
   const now = new Date()
   // Get the timezone offset for Budapest
-  const budapestTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Budapest' }))
+  const budapestTime = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Europe/Budapest' }),
+  )
   const utcTime = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }))
   const offset = budapestTime.getTime() - utcTime.getTime()
-  
+
   return new Date(now.getTime() + offset)
 }
