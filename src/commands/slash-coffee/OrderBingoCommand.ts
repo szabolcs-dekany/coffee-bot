@@ -78,6 +78,24 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply()
 
+  const member = interaction.guild?.members.cache.get(interaction.user.id)
+  const roles = member?.roles.cache
+
+  const hasCoffeeCrewRole = roles?.some(
+    role => role.name === 'coffee-crew-core',
+  )
+
+  if (!hasCoffeeCrewRole) {
+    logger.info(
+      `User ${interaction.user.tag} does not have the coffee crew role`,
+    )
+    await interaction.followUp({
+      content: 'You do not have the coffee crew core role! ☕️',
+      ephemeral: true,
+    })
+    return
+  }
+
   const sessionIdOption = interaction.options.getString('session-id')
 
   try {
