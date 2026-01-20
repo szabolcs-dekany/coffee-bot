@@ -194,19 +194,20 @@ const fillEntries = (
   fillers: string[],
 ) => {
   const filled = [...entries]
+  const localSet = new Set(entrySet)
 
   fillers.forEach(filler => {
     if (filled.length >= BINGO_ENTRIES) return
-    if (entrySet.has(filler)) return
-    entrySet.add(filler)
+    if (localSet.has(filler)) return
+    localSet.add(filler)
     filled.push(filler)
   })
 
   let fillerIndex = 1
   while (filled.length < BINGO_ENTRIES) {
     const fallback = `Bingo surprise ${fillerIndex}`
-    if (!entrySet.has(fallback)) {
-      entrySet.add(fallback)
+    if (!localSet.has(fallback)) {
+      localSet.add(fallback)
       filled.push(fallback)
     }
     fillerIndex += 1
