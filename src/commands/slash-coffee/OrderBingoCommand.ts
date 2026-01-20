@@ -234,8 +234,28 @@ const padCell = (cell: string) => {
 }
 
 const shortenLabel = (label: string, maxLength: number) => {
-  if (label.length <= maxLength) return label
-  return `${label.slice(0, maxLength - 1)}…`
+  const graphemes = (() => {
+    if (typeof Intl === 'undefined' || !('Segmenter' in Intl)) {
+      return Array.from(label)
+    }
+
+    type SegmenterInstance = {
+      segment: (value: string) => Iterable<{
+        segment: string
+        __value?: typeof value
+      }>
+    }
+    type SegmenterConstructor = new () => SegmenterInstance
+    const Segmenter = (Intl as typeof Intl & {
+      Segmenter: SegmenterConstructor
+    }).Segmenter
+
+    const segmenter = new Segmenter()
+    return [...segmenter.segment(label)].map(segment => segment.segment)
+  })()
+
+  if (graphemes.length <= maxLength) return label
+  return `${graphemes.slice(0, maxLength - 1).join('')}…`
 }
 
 const shuffle = <T>(items: T[]) => {
