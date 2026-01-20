@@ -5,6 +5,7 @@ import { deployCommandsGlobally } from './deploy-command'
 import pino from 'pino'
 import { connect } from './MongoConfig'
 import { handleInteraction } from './commands/response/GenericSelectMenuHandler'
+import { CoffeeFavoriteDocument } from './documents/CoffeeFavorite'
 
 const logger = pino({
   name: 'coffee-bot-main',
@@ -13,6 +14,15 @@ const logger = pino({
     target: 'pino-pretty',
   },
 })
+
+/**
+ * Escape regex metacharacters to prevent ReDoS attacks
+ * @param str - The string to escape
+ * @returns The escaped string safe for regex
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
 export const client = new Client({
   intents: [
@@ -40,32 +50,40 @@ client.on(Events.InteractionCreate, async interaction => {
 
   if (interaction.isAutocomplete()) {
     logger.info('Handling autocomplete! 🔍')
-    const { CoffeeFavoriteDocument } = await import(
-      './documents/CoffeeFavorite'
-    )
     const { commandName } = interaction
 
     if (commandName === 'usefavorite' || commandName === 'deletefavorite') {
-      const focusedValue = interaction.options.getFocused()
-      const userId = interaction.user.id
+      try {
+        const focusedValue = interaction.options.getFocused()
+        const userId = interaction.user.id
+        const escapedValue = escapeRegex(focusedValue)
 
-      const favorites = await CoffeeFavoriteDocument.find({
-        userId: userId,
-        favoriteName: { $regex: focusedValue, $options: 'i' },
-      })
-        .limit(25)
-        .sort({ favoriteName: 1 })
+        const favorites = await CoffeeFavoriteDocument.find({
+          userId: userId,
+          favoriteName: { $regex: escapedValue, $options: 'i' },
+        })
+          .limit(25)
+          .sort({ favoriteName: 1 })
 
-      const choices = favorites.map(fav => ({
-        name: fav.favoriteName,
-        value: fav.favoriteName,
-      }))
+        const choices = favorites.map(fav => ({
+          name: fav.favoriteName,
+          value: fav.favoriteName,
+        }))
 
-      await interaction.respond(choices)
-      logger.info(
-        `Autocomplete response sent with ${choices.length} choices for ${commandName}`,
-      )
+        await interaction.respond(choices)
+        logger.info(
+          `Autocomplete response sent with ${choices.length} choices for ${commandName}`,
+        )
+      } catch (error) {
+        logger.error('Error handling autocomplete:', {
+          error,
+          commandName,
+          userId: interaction.user.id,
+        })
+        await interaction.respond([])
+      }
     }
+    return
   }
 
   if (interaction.isChatInputCommand()) {

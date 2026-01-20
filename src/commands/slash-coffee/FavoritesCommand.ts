@@ -1,5 +1,9 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeFavoriteDocument } from '../../documents/CoffeeFavorite'
+import {
+  getCoffeeTypeLabel,
+  getTemperatureLabel,
+} from '../../utils/coffeeLabels'
 import pino from 'pino'
 
 const logger = pino({
@@ -44,14 +48,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     reply += `You have **${favorites.length}** saved favorite(s):\n\n`
 
     favorites.forEach((favorite, index) => {
-      const coffeeTypeLabel =
-        favorite.coffeeType === '🥛' ? 'With Milk' : 'Black Coffee'
-      const temperatureLabel =
-        favorite.temperature === '🥵'
-          ? 'Hot'
-          : favorite.temperature === '🧊'
-            ? 'Cold'
-            : 'Room Temp'
+      const coffeeTypeLabel = getCoffeeTypeLabel(favorite.coffeeType)
+      const temperatureLabel = getTemperatureLabel(favorite.temperature)
 
       reply += `### ${index + 1}. **${favorite.favoriteName}**\n`
       reply += `- **Coffee Type:** ${coffeeTypeLabel} ${favorite.coffeeType}\n`

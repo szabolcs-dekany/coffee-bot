@@ -1,5 +1,9 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeFavoriteDocument } from '../../documents/CoffeeFavorite'
+import {
+  getCoffeeTypeLabel,
+  getTemperatureLabel,
+} from '../../utils/coffeeLabels'
 import pino from 'pino'
 
 const logger = pino({
@@ -85,71 +89,29 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   )
 
   try {
-    // Check if favorite name already exists for this user
-    logger.info(
-      `🔍 Checking if favorite "${favoriteName}" already exists for ${userName}`,
+    logger.info(`💾 Upserting favorite "${favoriteName}" for ${userName}`)
+    await CoffeeFavoriteDocument.findOneAndUpdate(
+      { userId: userId, favoriteName: favoriteName },
+      {
+        $set: {
+          coffeeType: coffeeType,
+          aromaStrength: aromaStrength,
+          sugar: sugar,
+          temperature: temperature,
+        },
+        $setOnInsert: { userName: userName },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
     )
-    const existingFavorite = await CoffeeFavoriteDocument.findOne({
-      userId: userId,
-      favoriteName: favoriteName,
+
+    const coffeeTypeLabel = getCoffeeTypeLabel(coffeeType)
+    const temperatureLabel = getTemperatureLabel(temperature)
+
+    logger.info(`🎉 ${userName} successfully saved favorite "${favoriteName}"`)
+    await interaction.followUp({
+      content: `✅ **Favorite "${favoriteName}" saved!**\n\n**Coffee Type:** ${coffeeTypeLabel} ${coffeeType}\n**Aroma:** ${aromaStrength}\n**Sugar:** ${sugar}\n**Temperature:** ${temperatureLabel} ${temperature}\n\nUse \`/usefavorite\` to quickly order this coffee!`,
+      ephemeral: true,
     })
-
-    if (existingFavorite) {
-      logger.info(
-        `🔄 Updating existing favorite "${favoriteName}" for ${userName}`,
-      )
-      existingFavorite.coffeeType = coffeeType
-      existingFavorite.aromaStrength = aromaStrength
-      existingFavorite.sugar = sugar
-      existingFavorite.temperature = temperature
-      await existingFavorite.save()
-      logger.info('✅ Favorite updated successfully')
-
-      const coffeeTypeLabel = coffeeType === '🥛' ? 'With Milk' : 'Black Coffee'
-      const temperatureLabel =
-        temperature === '🥵'
-          ? 'Hot'
-          : temperature === '🧊'
-            ? 'Cold'
-            : 'Room Temp'
-
-      await interaction.followUp({
-        content: `✅ **Favorite "${favoriteName}" updated!**\n\n**Coffee Type:** ${coffeeTypeLabel} ${coffeeType}\n**Aroma:** ${aromaStrength}\n**Sugar:** ${sugar}\n**Temperature:** ${temperatureLabel} ${temperature}\n\nUse \`/usefavorite\` to quickly order this coffee!`,
-        ephemeral: true,
-      })
-      logger.info(
-        `🎉 ${userName} successfully updated favorite "${favoriteName}"`,
-      )
-    } else {
-      logger.info(`💾 Creating new favorite "${favoriteName}" for ${userName}`)
-      const favorite = new CoffeeFavoriteDocument({
-        userId: userId,
-        userName: userName,
-        favoriteName: favoriteName,
-        coffeeType: coffeeType,
-        aromaStrength: aromaStrength,
-        sugar: sugar,
-        temperature: temperature,
-      })
-      await favorite.save()
-      logger.info('✅ Favorite created successfully')
-
-      const coffeeTypeLabel = coffeeType === '🥛' ? 'With Milk' : 'Black Coffee'
-      const temperatureLabel =
-        temperature === '🥵'
-          ? 'Hot'
-          : temperature === '🧊'
-            ? 'Cold'
-            : 'Room Temp'
-
-      await interaction.followUp({
-        content: `✅ **Favorite "${favoriteName}" saved!**\n\n**Coffee Type:** ${coffeeTypeLabel} ${coffeeType}\n**Aroma:** ${aromaStrength}\n**Sugar:** ${sugar}\n**Temperature:** ${temperatureLabel} ${temperature}\n\nUse \`/usefavorite\` to quickly order this coffee!`,
-        ephemeral: true,
-      })
-      logger.info(
-        `🎉 ${userName} successfully saved new favorite "${favoriteName}"`,
-      )
-    }
   } catch (error) {
     logger.error('Error saving favorite coffee preset:', error)
     await interaction.followUp({

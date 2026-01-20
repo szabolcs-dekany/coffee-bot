@@ -2,6 +2,10 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeFavoriteDocument } from '../../documents/CoffeeFavorite'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
+import {
+  getCoffeeTypeLabel,
+  getTemperatureLabel,
+} from '../../utils/coffeeLabels'
 import pino from 'pino'
 
 const logger = pino({
@@ -103,14 +107,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       logger.info('✅ Order created successfully')
     }
 
-    const coffeeTypeLabel =
-      favorite.coffeeType === '🥛' ? 'With Milk' : 'Black Coffee'
-    const temperatureLabel =
-      favorite.temperature === '🥵'
-        ? 'Hot'
-        : favorite.temperature === '🧊'
-          ? 'Cold'
-          : 'Room Temp'
+    const coffeeTypeLabel = getCoffeeTypeLabel(favorite.coffeeType)
+    const temperatureLabel = getTemperatureLabel(favorite.temperature)
 
     await interaction.followUp({
       content: `✅ **Coffee ordered using "${favoriteName}"!**\n\n**Your order:**\n- **Coffee Type:** ${coffeeTypeLabel} ${favorite.coffeeType}\n- **Aroma:** ${favorite.aromaStrength}\n- **Sugar:** ${favorite.sugar}\n- **Temperature:** ${temperatureLabel} ${favorite.temperature}\n\n☕️ Your coffee will be ready soon!`,

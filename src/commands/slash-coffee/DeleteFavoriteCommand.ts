@@ -33,13 +33,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   )
 
   try {
-    logger.info(`🔍 Searching for favorite "${favoriteName}" for ${userName}`)
-    const favorite = await CoffeeFavoriteDocument.findOne({
+    logger.info(`🔍 Deleting favorite "${favoriteName}" for ${userName}`)
+    const deletedFavorite = await CoffeeFavoriteDocument.findOneAndDelete({
       userId: userId,
       favoriteName: favoriteName,
     })
 
-    if (!favorite) {
+    if (!deletedFavorite) {
       logger.info(`❌ Favorite "${favoriteName}" not found for ${userName}`)
       await interaction.followUp({
         content: `Favorite "${favoriteName}" not found! ☕️\n\nUse \`/favorites\` to see your saved favorites.`,
@@ -48,19 +48,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return
     }
 
-    logger.info(`✅ Found favorite "${favoriteName}", deleting...`)
-    await CoffeeFavoriteDocument.deleteOne({
-      userId: userId,
-      favoriteName: favoriteName,
-    })
-
+    logger.info(
+      `🎉 ${userName} successfully deleted favorite "${favoriteName}"`,
+    )
     await interaction.followUp({
       content: `✅ **Favorite "${favoriteName}" deleted successfully!**\n\nUse \`/favorites\` to see your remaining favorites.`,
       ephemeral: true,
     })
-    logger.info(
-      `🎉 ${userName} successfully deleted favorite "${favoriteName}"`,
-    )
   } catch (error) {
     logger.error('Error deleting favorite coffee preset:', error)
     await interaction.followUp({
