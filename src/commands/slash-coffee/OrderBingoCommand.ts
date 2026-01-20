@@ -210,7 +210,7 @@ const fillEntries = (
   entries: string[],
   entrySet: Set<string>,
   fillers: string[],
-) => {
+): string[] => {
   const filled = [...entries]
   const localSet = new Set(entrySet)
 
@@ -234,7 +234,7 @@ const fillEntries = (
   return filled
 }
 
-const buildGrid = (cells: string[]) => {
+const buildGrid = (cells: string[]): string => {
   const rows: string[] = []
 
   for (let rowIndex = 0; rowIndex < BINGO_SIZE; rowIndex += 1) {
@@ -247,12 +247,12 @@ const buildGrid = (cells: string[]) => {
   return rows.join('\n')
 }
 
-const padCell = (cell: string) => {
+const padCell = (cell: string): string => {
   const normalized = shortenLabel(cell, CELL_WIDTH)
   return normalized.padEnd(CELL_WIDTH, ' ')
 }
 
-const shortenLabel = (label: string, maxLength: number) => {
+const shortenLabel = (label: string, maxLength: number): string => {
   const graphemes = (() => {
     if (typeof Intl === 'undefined' || !('Segmenter' in Intl)) {
       return Array.from(label)
@@ -277,7 +277,7 @@ const shortenLabel = (label: string, maxLength: number) => {
   return `${graphemes.slice(0, maxLength - 1).join('')}…`
 }
 
-const shuffle = <T>(items: T[]) => {
+const shuffle = <T>(items: T[]): T[] => {
   const shuffled = [...items]
 
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
