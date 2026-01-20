@@ -180,7 +180,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     await interaction.followUp(reply)
     logger.info('✅ Bingo card sent')
   } catch (error) {
-    logger.error('Error building bingo card:', error)
+    logger.error({ err: error }, 'Error building bingo card')
     await interaction.followUp({
       content: 'There was an error building the bingo card.',
       ephemeral: true,
