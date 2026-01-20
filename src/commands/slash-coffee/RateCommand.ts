@@ -94,7 +94,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (!userOrder) {
       logger.info(`❌ ${userName} did not order coffee in this session`)
       await interaction.followUp({
-        content: 'You didn\'t order coffee in this session! ☕️',
+        content: "You didn't order coffee in this session! ☕️",
         ephemeral: true,
       })
       return
