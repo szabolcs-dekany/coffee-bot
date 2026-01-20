@@ -75,7 +75,9 @@ export const data = new SlashCommandBuilder()
       .setRequired(false),
   )
 
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+  interaction: ChatInputCommandInteraction,
+): Promise<void> {
   await interaction.deferReply()
 
   const member = interaction.guild?.members.cache.get(interaction.user.id)
@@ -152,7 +154,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const entrySet = new Set<string>()
     const entries: string[] = []
 
-    const addEntry = (entry?: string) => {
+    const addEntry = (entry?: string): void => {
       if (!entry || entrySet.has(entry)) return
       entrySet.add(entry)
       entries.push(entry)
