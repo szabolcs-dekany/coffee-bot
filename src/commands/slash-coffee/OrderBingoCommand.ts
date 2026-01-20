@@ -175,13 +175,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     const grid = buildGrid(cells)
 
-    const reply = `# ☕️ **Order Bingo** ☕️\n**Session:** \`${targetSessionId}\`\nMark off items that match today’s coffee orders.\n\n\
-\
-\
-\
-\
-\
-\`\`\`\n${grid}\n\`\`\``
+    const reply = `# ☕️ **Order Bingo** ☕️\n**Session:** \`${targetSessionId}\`\nMark off items that match today’s coffee orders.\n\n\`\`\`\n${grid}\n\`\`\``
 
     await interaction.followUp(reply)
     logger.info('✅ Bingo card sent')
