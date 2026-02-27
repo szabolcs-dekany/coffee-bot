@@ -3,6 +3,7 @@ import {
   SlashCommandBuilder,
   EmbedBuilder,
   Colors,
+  ColorResolvable,
 } from 'discord.js'
 import { CoffeeChallengeDocument } from '../../documents/CoffeeChallenge'
 import { UserChallengeProgressDocument } from '../../documents/UserChallengeProgress'
@@ -10,6 +11,8 @@ import { CoffeeBadgeDocument } from '../../documents/CoffeeBadge'
 import { createLogger } from '../../utils/logger'
 
 const logger = createLogger('challenge-command')
+
+const MAX_FIELDS_PER_EMBED = 25
 
 export const data = new SlashCommandBuilder()
   .setName('challenge')
@@ -87,30 +90,23 @@ async function handleViewChallenges(interaction: ChatInputCommandInteraction) {
     return
   }
 
-  const embed = new EmbedBuilder()
-    .setColor(Colors.Orange)
-    .setTitle('🏆 Coffee Challenges')
-    .setDescription('Complete challenges to earn badges and special roles!')
+  const embeds = chunkEmbedFields(
+    challenges.map(challenge => ({
+      name: `${challenge.badgeEmoji} ${challenge.title}`,
+      value: `**ID:** \`${challenge.challengeId}\`\n**Goal:** ${challenge.goalDescription}\n**Duration:** ${Math.ceil((challenge.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days left\n**Type:** ${challenge.type === 'weekly' ? '📅 Weekly' : '👥 Team'}`,
+    })),
+    Colors.Orange,
+    '🏆 Coffee Challenges',
+    'Complete challenges to earn badges and special roles!',
+  )
 
-  for (const challenge of challenges) {
-    const daysLeft = Math.ceil(
-      (challenge.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-    )
-    const progressBar = `${challenge.badgeEmoji} ${challenge.title}`
-    const value = `**Goal:** ${challenge.goalDescription}\n**Duration:** ${daysLeft} days left\n**Type:** ${challenge.type === 'weekly' ? '📅 Weekly' : '👥 Team'}`
-
-    embed.addFields({
-      name: progressBar,
-      value: value,
-      inline: false,
+  for (const embed of embeds) {
+    embed.setFooter({
+      text: 'Use `/challenge progress` to track your progress! Use `/challenge claim <challenge-id>` to claim rewards.',
     })
   }
 
-  embed.setFooter({
-    text: 'Use /challenge progress to track your progress!',
-  })
-
-  await interaction.followUp({ embeds: [embed], ephemeral: true })
+  await interaction.followUp({ embeds, ephemeral: true })
   logger.info(`✅ Displayed ${challenges.length} active challenges`)
 }
 
@@ -133,10 +129,7 @@ async function handleViewProgress(
     return
   }
 
-  const embed = new EmbedBuilder()
-    .setColor(Colors.Gold)
-    .setTitle('🎯 Your Challenge Progress')
-    .setDescription(`Tracking progress for ${userName}`)
+  const fields: Array<{ name: string; value: string }> = []
 
   for (const challenge of challenges) {
     let progress = await UserChallengeProgressDocument.findOne({
@@ -164,14 +157,20 @@ async function handleViewProgress(
       ? '✅ Completed!'
       : `${progress.progress}/${challenge.goal}`
 
-    embed.addFields({
+    fields.push({
       name: `${challenge.badgeEmoji} ${challenge.title}`,
-      value: `${progressBar}\n${status}`,
-      inline: false,
+      value: `**ID:** \`${challenge.challengeId}\`\n${progressBar}\n${status}`,
     })
   }
 
-  await interaction.followUp({ embeds: [embed], ephemeral: true })
+  const embeds = chunkEmbedFields(
+    fields,
+    Colors.Gold,
+    '🎯 Your Challenge Progress',
+    `Tracking progress for ${userName}`,
+  )
+
+  await interaction.followUp({ embeds, ephemeral: true })
   logger.info(`✅ Displayed progress for ${userName}`)
 }
 
@@ -199,57 +198,76 @@ async function handleClaimReward(
     return
   }
 
-  const progress = await UserChallengeProgressDocument.findOne({
-    userId: userId,
-    challengeId: challengeId,
-  })
-
-  if (!progress || !progress.isCompleted) {
-    logger.info(`❌ ${userName} has not completed challenge ${challengeId}`)
-    await interaction.followUp({
-      content: 'You haven\'t completed this challenge yet!',
-      ephemeral: true,
-    })
-    return
-  }
-
-  if (progress.claimedAt) {
-    logger.info(
-      `⚠️ ${userName} already claimed reward for challenge ${challengeId}`,
-    )
-    await interaction.followUp({
-      content: 'You have already claimed the reward for this challenge!',
-      ephemeral: true,
-    })
-    return
-  }
-
-  // Create or update badge
-  const existingBadge = await CoffeeBadgeDocument.findOne({
-    userId: userId,
-    challengeId: challengeId,
-  })
-
-  if (!existingBadge) {
-    const badge = new CoffeeBadgeDocument({
+  // Atomically claim the reward - only if completed and not already claimed
+  const progress = await UserChallengeProgressDocument.findOneAndUpdate(
+    {
       userId: userId,
-      userName: userName,
-      badgeId: `${challenge.badgeName}_${challengeId}`,
-      badgeName: challenge.badgeName,
-      badgeEmoji: challenge.badgeEmoji,
-      badgeDescription: challenge.badgeDescription,
       challengeId: challengeId,
-      earnedAt: new Date(),
+      isCompleted: true,
+      claimedAt: { $exists: false },
+    },
+    { $set: { claimedAt: new Date() } },
+    { new: true },
+  )
+
+  if (!progress) {
+    // Check if not completed or already claimed
+    const existingProgress = await UserChallengeProgressDocument.findOne({
+      userId: userId,
+      challengeId: challengeId,
     })
-    await badge.save()
-    logger.info(`💾 Created badge for ${userName}`)
+
+    if (!existingProgress || !existingProgress.isCompleted) {
+      logger.info(`❌ ${userName} has not completed challenge ${challengeId}`)
+      await interaction.followUp({
+        content: 'You haven\'t completed this challenge yet!',
+        ephemeral: true,
+      })
+      return
+    }
+
+    if (existingProgress.claimedAt) {
+      logger.info(
+        `⚠️ ${userName} already claimed reward for challenge ${challengeId}`,
+      )
+      await interaction.followUp({
+        content: 'You have already claimed the reward for this challenge!',
+        ephemeral: true,
+      })
+      return
+    }
+
+    // Fallback error
+    await interaction.followUp({
+      content: 'Unable to claim reward. Please try again.',
+      ephemeral: true,
+    })
+    return
   }
 
-  // Mark as claimed
-  progress.claimedAt = new Date()
-  await progress.save()
+  // Create badge (idempotent - use upsert)
+  await CoffeeBadgeDocument.findOneAndUpdate(
+    { userId: userId, challengeId: challengeId },
+    {
+      $set: {
+        badgeId: `${challenge.badgeName}_${challengeId}`,
+        badgeName: challenge.badgeName,
+        badgeEmoji: challenge.badgeEmoji,
+        badgeDescription: challenge.badgeDescription,
+        earnedAt: new Date(),
+      },
+      $setOnInsert: {
+        userId: userId,
+        userName: userName,
+        challengeId: challengeId,
+      },
+    },
+    { upsert: true },
+  )
+  logger.info(`💾 Created/updated badge for ${userName}`)
 
-  // Try to assign role
+  // Try to assign role - track actual outcome
+  let roleAssigned = false
   try {
     const member = interaction.guild?.members.cache.get(userId)
     if (member) {
@@ -258,10 +276,13 @@ async function handleClaimReward(
       )
       if (role) {
         await member.roles.add(role)
+        roleAssigned = true
         logger.info(`✅ Added role "${challenge.badgeName}" to ${userName}`)
       } else {
         logger.info(`⚠️ Role "${challenge.badgeName}" not found in guild`)
       }
+    } else {
+      logger.info(`⚠️ Member not found in guild for ${userName}`)
     }
   } catch (error) {
     logger.error(`Error assigning role to ${userName}:`, error)
@@ -276,9 +297,7 @@ async function handleClaimReward(
       value: `${challenge.badgeEmoji} **${challenge.badgeName}**\n${challenge.badgeDescription}`,
     })
 
-  if (
-    interaction.guild?.roles.cache.find(r => r.name === challenge.badgeName)
-  ) {
+  if (roleAssigned) {
     embed.addFields({
       name: 'Special Role',
       value: `You've been granted the **${challenge.badgeName}** role!`,
@@ -309,23 +328,17 @@ async function handleViewBadges(
     return
   }
 
-  const embed = new EmbedBuilder()
-    .setColor(Colors.Gold)
-    .setTitle('🏅 Your Badges')
-    .setDescription(
-      `${userName} has earned ${badges.length} badge${badges.length !== 1 ? 's' : ''}!`,
-    )
-
-  for (const badge of badges) {
-    const earnedDate = badge.earnedAt.toLocaleDateString()
-    embed.addFields({
+  const embeds = chunkEmbedFields(
+    badges.map(badge => ({
       name: `${badge.badgeEmoji} ${badge.badgeName}`,
-      value: `${badge.badgeDescription}\nEarned: ${earnedDate}`,
-      inline: false,
-    })
-  }
+      value: `${badge.badgeDescription}\nEarned: ${badge.earnedAt.toLocaleDateString()}`,
+    })),
+    Colors.Gold,
+    '🏅 Your Badges',
+    `${userName} has earned ${badges.length} badge${badges.length !== 1 ? 's' : ''}!`,
+  )
 
-  await interaction.followUp({ embeds: [embed], ephemeral: true })
+  await interaction.followUp({ embeds, ephemeral: true })
   logger.info(`✅ Displayed ${badges.length} badges for ${userName}`)
 }
 
@@ -333,4 +346,42 @@ function createProgressBar(percentage: number): string {
   const filled = Math.round(percentage / 10)
   const empty = 10 - filled
   return `\`${'█'.repeat(filled)}${'░'.repeat(empty)}\` ${percentage}%`
+}
+
+/**
+ * Chunk fields into multiple embeds to respect Discord's 25-field limit
+ */
+function chunkEmbedFields(
+  fields: Array<{ name: string; value: string }>,
+  color: ColorResolvable,
+  title: string,
+  description: string,
+): EmbedBuilder[] {
+  const embeds: EmbedBuilder[] = []
+
+  for (let i = 0; i < fields.length; i += MAX_FIELDS_PER_EMBED) {
+    const chunk = fields.slice(i, i + MAX_FIELDS_PER_EMBED)
+    const embed = new EmbedBuilder()
+      .setColor(color)
+      .setTitle(i === 0 ? title : `${title} (continued)`)
+      .setDescription(i === 0 ? description : '')
+
+    for (const field of chunk) {
+      embed.addFields({
+        ...field,
+        inline: false,
+      })
+    }
+
+    embeds.push(embed)
+  }
+
+  return embeds.length > 0
+    ? embeds
+    : [
+        new EmbedBuilder()
+          .setColor(color)
+          .setTitle(title)
+          .setDescription(description),
+      ]
 }

@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-interface IUserChallengeProgress extends Document {
+export interface IUserChallengeProgress extends Document {
   userId: string
   userName: string
   challengeId: string

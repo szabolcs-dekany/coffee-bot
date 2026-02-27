@@ -1,7 +1,14 @@
 import { CoffeeRequestDocument } from '../documents/CoffeeDocument'
 import { CoffeeSessionDocument } from '../documents/CoffeeSession'
-import { UserChallengeProgressDocument } from '../documents/UserChallengeProgress'
-import { CoffeeChallengeDocument } from '../documents/CoffeeChallenge'
+import {
+  UserChallengeProgressDocument,
+  IUserChallengeProgress,
+} from '../documents/UserChallengeProgress'
+import {
+  CoffeeChallengeDocument,
+  ICoffeeChallenge,
+  ChallengeMetric,
+} from '../documents/CoffeeChallenge'
 import { createLogger } from './logger'
 
 const logger = createLogger('challenge-utils')
@@ -60,7 +67,7 @@ export async function updateUserChallengeProgress(
  */
 async function evaluateChallengeProgress(
   challengeId: string,
-  progress: any,
+  progress: IUserChallengeProgress,
 ): Promise<void> {
   const challenge = await CoffeeChallengeDocument.findOne({ challengeId })
 
@@ -73,14 +80,15 @@ async function evaluateChallengeProgress(
 
   let currentProgress = 0
 
-  if (challenge.title.includes('Try 3 new combinations')) {
-    // Count unique coffee combinations for this user
+  // Use metric field instead of fragile title checks
+  const metric = challenge.metric ?? inferMetricFromTitle(challenge)
+
+  if (metric === 'unique_combinations') {
     currentProgress = await countUniqueUserCombinations(
       progress.userId,
       challenge,
     )
-  } else if (challenge.title.includes('participation')) {
-    // Count session participations
+  } else if (metric === 'session_participation') {
     currentProgress = await countUserSessionParticipations(
       progress.userId,
       challenge,
@@ -100,11 +108,24 @@ async function evaluateChallengeProgress(
 }
 
 /**
+ * Fallback: infer metric from title for legacy challenges without metric field
+ */
+function inferMetricFromTitle(challenge: ICoffeeChallenge): ChallengeMetric {
+  if (challenge.title.includes('combinations')) {
+    return 'unique_combinations'
+  }
+  if (challenge.title.includes('participation')) {
+    return 'session_participation'
+  }
+  return 'unique_combinations' // default
+}
+
+/**
  * Count unique coffee combinations for a user within challenge period
  */
 async function countUniqueUserCombinations(
   userId: string,
-  challenge: any,
+  challenge: ICoffeeChallenge,
 ): Promise<number> {
   const combinationSet = new Set<string>()
 
@@ -130,7 +151,7 @@ async function countUniqueUserCombinations(
  */
 async function countUserSessionParticipations(
   userId: string,
-  challenge: any,
+  challenge: ICoffeeChallenge,
 ): Promise<number> {
   const sessionIds = await CoffeeRequestDocument.distinct('sessionId', {
     coffeeCrewPerson: userId,
@@ -188,7 +209,8 @@ export async function evaluateTeamChallenges(): Promise<void> {
           )
 
           // Update all participants' progress
-          for (const userId of participantsCount as any[]) {
+          const participantIds = participantsCount as string[]
+          for (const userId of participantIds) {
             const userOrders = await CoffeeRequestDocument.find({
               sessionId: session.sessionId,
               coffeeCrewPerson: userId,
@@ -265,6 +287,7 @@ export async function initializeDefaultChallenges(): Promise<void> {
       const weeklyChallenge = new CoffeeChallengeDocument({
         challengeId: `weekly-${Date.now()}`,
         type: 'weekly',
+        metric: 'unique_combinations',
         title: 'Try 3 new combinations',
         description:
           'Experiment with different coffee combinations this week. Order 3 unique coffee combinations.',
@@ -297,6 +320,7 @@ export async function initializeDefaultChallenges(): Promise<void> {
       const teamChallenge = new CoffeeChallengeDocument({
         challengeId: `team-${Date.now()}`,
         type: 'team',
+        metric: 'session_participation',
         title: 'Achieve 100% participation',
         description:
           'Get the entire coffee crew to participate in 1 session. Team challenges reward everyone!',

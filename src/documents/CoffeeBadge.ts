@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-interface ICoffeeBadge extends Document {
+export interface ICoffeeBadge extends Document {
   userId: string
   userName: string
   badgeId: string
