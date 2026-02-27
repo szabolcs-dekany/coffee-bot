@@ -1,14 +1,8 @@
 import mongoose from 'mongoose'
 import { config } from './config'
-import pino from 'pino'
+import { createLogger } from './utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-mongo-config',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('mongo-config')
 
 export async function connect() {
   try {

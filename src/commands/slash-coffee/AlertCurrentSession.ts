@@ -1,15 +1,9 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-alert-crew-members',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('alert-command')
 
 export const data = new SlashCommandBuilder()
   .setName('alert')

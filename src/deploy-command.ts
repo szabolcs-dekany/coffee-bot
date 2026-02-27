@@ -1,19 +1,13 @@
 import { REST, Routes } from 'discord.js'
 import { config } from './config'
 import { commands } from './commands'
-import pino from 'pino'
+import { createLogger } from './utils/logger'
 
 const commandsData = Object.values(commands).map(command => command.data)
 
 const rest = new REST().setToken(config.DISCORD_TOKEN)
 
-const logger = pino({
-  name: 'coffee-bot-deploy-commands',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('deploy-commands')
 
 export async function deployCommandsGlobally() {
   try {

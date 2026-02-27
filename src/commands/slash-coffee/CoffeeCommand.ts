@@ -1,22 +1,17 @@
 import {
   ActionRowBuilder,
-  CommandInteraction,
+  ChatInputCommandInteraction,
   MessageActionRowComponentBuilder,
   SlashCommandBuilder,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js'
-import pino from 'pino'
 import { v4 as uuidv4 } from 'uuid'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
+import { createLogger } from '../../utils/logger'
+import { ROLES } from '../../constants'
 
-const logger = pino({
-  name: 'coffee-bot-coffee-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('coffee-command')
 
 export const data = new SlashCommandBuilder()
   .setName('coffee')
@@ -28,13 +23,14 @@ export const data = new SlashCommandBuilder()
       .setRequired(true),
   )
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply()
+
   const member = interaction.guild?.members.cache.get(interaction.user.id)
   const roles = member?.roles.cache
 
   const hasCoffeeCrewRole = roles?.some(
-    role => role.name === 'coffee-crew-core',
+    role => role.name === ROLES.COFFEE_CREW_CORE,
   )
 
   if (!hasCoffeeCrewRole) {
@@ -49,7 +45,7 @@ export async function execute(interaction: CommandInteraction) {
 
   logger.info('Fetching members with the coffee crew role...')
   const targetRole = interaction.guild?.roles.cache.find(
-    role => role.name === 'coffee-crew',
+    role => role.name === ROLES.COFFEE_CREW,
   )
   const allMembers = await interaction.guild?.members.fetch()
   const membersWithRole =
@@ -64,7 +60,7 @@ export async function execute(interaction: CommandInteraction) {
   )
 
   const sessionId = uuidv4()
-  const estimatedTimeOfCoffee = interaction.options.data[0].value
+  const estimatedTimeOfCoffee = interaction.options.getString('etc', true)
 
   logger.info(`Starting a new Coffee session with session id ${sessionId} ☕️`)
   const session = new CoffeeSessionDocument({

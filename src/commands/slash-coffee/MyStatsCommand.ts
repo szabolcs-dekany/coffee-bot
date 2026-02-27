@@ -1,9 +1,8 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-// Type definitions for aggregation results
 interface CoffeeTypeStats {
   _id: string
   count: number
@@ -32,13 +31,7 @@ interface ParticipationStat {
   participationCount: number
 }
 
-const logger = pino({
-  name: 'coffee-bot-my-stats-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('my-stats-command')
 
 export const data = new SlashCommandBuilder()
   .setName('mystats')
@@ -86,7 +79,7 @@ export async function execute(interaction: CommandInteraction) {
       logger.info(`❌ No coffee orders found for ${userName}`)
       await interaction.followUp({
         content:
-          "You haven't ordered any coffee yet! ☕️\nStart ordering to see your personalized statistics.",
+          'You haven\'t ordered any coffee yet! ☕️\nStart ordering to see your personalized statistics.',
         ephemeral: true,
       })
       return

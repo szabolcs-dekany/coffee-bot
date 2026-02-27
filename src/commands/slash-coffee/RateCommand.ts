@@ -2,15 +2,9 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
 import { FeedbackDocument } from '../../documents/FeedbackDocument'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-rate-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('rate-command')
 
 export const data = new SlashCommandBuilder()
   .setName('rate')
@@ -94,7 +88,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (!userOrder) {
       logger.info(`❌ ${userName} did not order coffee in this session`)
       await interaction.followUp({
-        content: "You didn't order coffee in this session! ☕️",
+        content: 'You didn\'t order coffee in this session! ☕️',
         ephemeral: true,
       })
       return

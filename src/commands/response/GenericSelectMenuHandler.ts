@@ -1,62 +1,77 @@
 import { StringSelectMenuInteraction } from 'discord.js'
-import pino from 'pino'
 import { handleCoffeeType } from './CoffeeTypeResponseHandler'
 import { handleAromaStrength } from './AromaStrengthResponseHandler'
 import { handleSugar } from './SugarResponseHandler'
 import { isCompleteCoffeeDocument } from '../CoffeeDocumentHelper'
 import { handleTemperature } from './TemperatureResponseHandler'
+import { updateUserChallengeProgress } from '../../utils/challengeUtils'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-generic-select-handler',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('generic-select-handler')
 
 export async function handleInteraction(
   interaction: StringSelectMenuInteraction,
 ) {
   const customId = interaction.customId
-  const sessionId = await getSessionId(customId)
-  const responseType = await getResponseType(customId)
 
-  logger.info(
-    `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
-  )
+  try {
+    const sessionId = getSessionId(customId)
+    const responseType = getResponseType(customId)
 
-  let coffeeDocument = undefined
+    logger.info(
+      `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
+    )
 
-  if (responseType === 'coffee-type') {
-    coffeeDocument = await handleCoffeeType(interaction, sessionId)
-  }
+    let coffeeDocument = undefined
 
-  if (responseType === 'aroma-strength') {
-    coffeeDocument = await handleAromaStrength(interaction, sessionId)
-  }
+    if (responseType === 'coffee-type') {
+      coffeeDocument = await handleCoffeeType(interaction, sessionId)
+    }
 
-  if (responseType === 'sugar') {
-    coffeeDocument = await handleSugar(interaction, sessionId)
-  }
+    if (responseType === 'aroma-strength') {
+      coffeeDocument = await handleAromaStrength(interaction, sessionId)
+    }
 
-  if (responseType === 'temperature') {
-    coffeeDocument = await handleTemperature(interaction, sessionId)
-  }
+    if (responseType === 'sugar') {
+      coffeeDocument = await handleSugar(interaction, sessionId)
+    }
 
-  await interaction.deferUpdate()
+    if (responseType === 'temperature') {
+      coffeeDocument = await handleTemperature(interaction, sessionId)
+    }
 
-  if (coffeeDocument && isCompleteCoffeeDocument(coffeeDocument)) {
-    await interaction.followUp({
-      content: 'Your coffee order is complete! 🎉, See you soon! ☕️',
-      components: [],
-    })
+    await interaction.deferUpdate()
+
+    if (coffeeDocument && isCompleteCoffeeDocument(coffeeDocument)) {
+      const userName = interaction.user.displayName || interaction.user.username
+      const userId = interaction.user.id
+      await updateUserChallengeProgress(userId, userName)
+
+      await interaction.followUp({
+        content: 'Your coffee order is complete! 🎉, See you soon! ☕️',
+        components: [],
+      })
+    }
+  } catch (error) {
+    logger.error('Error handling select menu interaction:', error)
+    await interaction.deferUpdate()
   }
 }
 
-const getSessionId = async (customId: string) => {
-  return customId.split('|')[0]
+function getSessionId(customId: string): string {
+  const parts = customId.split('|')
+  if (!customId || parts.length < 2 || !parts[0]) {
+    logger.error(`Invalid customId format for sessionId: "${customId}"`)
+    throw new Error('Invalid customId format: missing sessionId')
+  }
+  return parts[0]
 }
 
-const getResponseType = async (customId: string) => {
-  return customId.split('|')[1]
+function getResponseType(customId: string): string {
+  const parts = customId.split('|')
+  if (!customId || parts.length < 2 || !parts[1]) {
+    logger.error(`Invalid customId format for responseType: "${customId}"`)
+    throw new Error('Invalid customId format: missing responseType')
+  }
+  return parts[1]
 }

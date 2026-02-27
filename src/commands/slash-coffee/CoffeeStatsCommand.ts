@@ -1,9 +1,8 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-// Type definitions for aggregation results
 interface CoffeeTypeStats {
   _id: string
   count: number
@@ -70,13 +69,7 @@ interface TimingAnalysis {
   avgCrewSize: number
 }
 
-const logger = pino({
-  name: 'coffee-bot-coffee-stats-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('coffee-stats-command')
 
 export const data = new SlashCommandBuilder()
   .setName('coffeestats')

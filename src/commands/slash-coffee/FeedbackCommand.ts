@@ -1,15 +1,9 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { FeedbackDocument } from '../../documents/FeedbackDocument'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-feedback-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('feedback-command')
 
 export const data = new SlashCommandBuilder()
   .setName('feedback')
