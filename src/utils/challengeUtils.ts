@@ -13,21 +13,20 @@ const logger = createLogger('challenge-utils')
 export async function updateUserChallengeProgress(
   userId: string,
   userName: string,
-  sessionId: string,
 ): Promise<void> {
   logger.info(`🔄 Updating challenge progress for user ${userName}`)
 
-  const activeChallenge = await CoffeeChallengeDocument.findOne({
-    isActive: true,
-    type: 'weekly',
-  })
-
-  if (!activeChallenge) {
-    logger.info('⚠️ No active weekly challenge found')
-    return
-  }
-
   try {
+    const activeChallenge = await CoffeeChallengeDocument.findOne({
+      isActive: true,
+      type: 'weekly',
+    })
+
+    if (!activeChallenge) {
+      logger.info('⚠️ No active weekly challenge found')
+      return
+    }
+
     // Get or create progress record
     let progress = await UserChallengeProgressDocument.findOne({
       userId: userId,

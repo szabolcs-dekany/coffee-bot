@@ -8,8 +8,8 @@ import {
 } from 'discord.js'
 import { v4 as uuidv4 } from 'uuid'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
-import { initializeDefaultChallenges } from '../../utils/challengeUtils'
 import { createLogger } from '../../utils/logger'
+import { ROLES } from '../../constants'
 
 const logger = createLogger('coffee-command')
 
@@ -26,14 +26,11 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply()
 
-  // Ensure challenges are initialized
-  await initializeDefaultChallenges()
-
   const member = interaction.guild?.members.cache.get(interaction.user.id)
   const roles = member?.roles.cache
 
   const hasCoffeeCrewRole = roles?.some(
-    role => role.name === 'coffee-crew-core',
+    role => role.name === ROLES.COFFEE_CREW_CORE,
   )
 
   if (!hasCoffeeCrewRole) {
@@ -48,7 +45,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   logger.info('Fetching members with the coffee crew role...')
   const targetRole = interaction.guild?.roles.cache.find(
-    role => role.name === 'coffee-crew',
+    role => role.name === ROLES.COFFEE_CREW,
   )
   const allMembers = await interaction.guild?.members.fetch()
   const membersWithRole =

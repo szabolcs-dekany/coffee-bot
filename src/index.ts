@@ -129,17 +129,25 @@ function scheduleWeeklyChallengeRefresh(): void {
     `📅 Weekly challenge refresh scheduled for ${nextMonday.toISOString()}`,
   )
 
-  setTimeout(() => {
-    archiveExpiredChallenges()
-    initializeDefaultChallenges()
-    logger.info('🔄 Weekly challenges refreshed!')
+  setTimeout(async () => {
+    try {
+      await archiveExpiredChallenges()
+      await initializeDefaultChallenges()
+      logger.info('🔄 Weekly challenges refreshed!')
+    } catch (error) {
+      logger.error('Error refreshing weekly challenges:', error)
+    }
 
     // Schedule again for next week
     setInterval(
       async () => {
-        await archiveExpiredChallenges()
-        await initializeDefaultChallenges()
-        logger.info('🔄 Weekly challenges refreshed!')
+        try {
+          await archiveExpiredChallenges()
+          await initializeDefaultChallenges()
+          logger.info('🔄 Weekly challenges refreshed!')
+        } catch (error) {
+          logger.error('Error refreshing weekly challenges:', error)
+        }
       },
       7 * 24 * 60 * 60 * 1000,
     ) // Every 7 days
@@ -153,13 +161,19 @@ function scheduleTeamChallengeEvaluation(): void {
   logger.info('👥 Team challenge evaluation scheduled (every 6 hours)')
 
   // Run immediately
-  evaluateTeamChallenges()
+  evaluateTeamChallenges().catch(error => {
+    logger.error('Error evaluating team challenges:', error)
+  })
 
   // Then run every 6 hours
   setInterval(
     async () => {
-      await evaluateTeamChallenges()
-      logger.info('✅ Team challenges evaluated')
+      try {
+        await evaluateTeamChallenges()
+        logger.info('✅ Team challenges evaluated')
+      } catch (error) {
+        logger.error('Error evaluating team challenges:', error)
+      }
     },
     6 * 60 * 60 * 1000,
   ) // Every 6 hours

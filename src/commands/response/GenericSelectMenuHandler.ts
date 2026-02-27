@@ -13,50 +13,65 @@ export async function handleInteraction(
   interaction: StringSelectMenuInteraction,
 ) {
   const customId = interaction.customId
-  const sessionId = getSessionId(customId)
-  const responseType = getResponseType(customId)
 
-  logger.info(
-    `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
-  )
+  try {
+    const sessionId = getSessionId(customId)
+    const responseType = getResponseType(customId)
 
-  let coffeeDocument = undefined
+    logger.info(
+      `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
+    )
 
-  if (responseType === 'coffee-type') {
-    coffeeDocument = await handleCoffeeType(interaction, sessionId)
-  }
+    let coffeeDocument = undefined
 
-  if (responseType === 'aroma-strength') {
-    coffeeDocument = await handleAromaStrength(interaction, sessionId)
-  }
+    if (responseType === 'coffee-type') {
+      coffeeDocument = await handleCoffeeType(interaction, sessionId)
+    }
 
-  if (responseType === 'sugar') {
-    coffeeDocument = await handleSugar(interaction, sessionId)
-  }
+    if (responseType === 'aroma-strength') {
+      coffeeDocument = await handleAromaStrength(interaction, sessionId)
+    }
 
-  if (responseType === 'temperature') {
-    coffeeDocument = await handleTemperature(interaction, sessionId)
-  }
+    if (responseType === 'sugar') {
+      coffeeDocument = await handleSugar(interaction, sessionId)
+    }
 
-  await interaction.deferUpdate()
+    if (responseType === 'temperature') {
+      coffeeDocument = await handleTemperature(interaction, sessionId)
+    }
 
-  if (coffeeDocument && isCompleteCoffeeDocument(coffeeDocument)) {
-    // Track challenge progress
-    const userName = interaction.user.displayName || interaction.user.username
-    const userId = interaction.user.id
-    await updateUserChallengeProgress(userId, userName, sessionId)
+    await interaction.deferUpdate()
 
-    await interaction.followUp({
-      content: 'Your coffee order is complete! 🎉, See you soon! ☕️',
-      components: [],
-    })
+    if (coffeeDocument && isCompleteCoffeeDocument(coffeeDocument)) {
+      const userName = interaction.user.displayName || interaction.user.username
+      const userId = interaction.user.id
+      await updateUserChallengeProgress(userId, userName)
+
+      await interaction.followUp({
+        content: 'Your coffee order is complete! 🎉, See you soon! ☕️',
+        components: [],
+      })
+    }
+  } catch (error) {
+    logger.error('Error handling select menu interaction:', error)
+    await interaction.deferUpdate()
   }
 }
 
 function getSessionId(customId: string): string {
-  return customId.split('|')[0]
+  const parts = customId.split('|')
+  if (!customId || parts.length < 2 || !parts[0]) {
+    logger.error(`Invalid customId format for sessionId: "${customId}"`)
+    throw new Error('Invalid customId format: missing sessionId')
+  }
+  return parts[0]
 }
 
 function getResponseType(customId: string): string {
-  return customId.split('|')[1]
+  const parts = customId.split('|')
+  if (!customId || parts.length < 2 || !parts[1]) {
+    logger.error(`Invalid customId format for responseType: "${customId}"`)
+    throw new Error('Invalid customId format: missing responseType')
+  }
+  return parts[1]
 }

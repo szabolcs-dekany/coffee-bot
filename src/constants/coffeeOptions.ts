@@ -25,7 +25,12 @@ export const TEMPERATURES = {
   COLD: '🧊',
 } as const
 
-export const AROMA_STRENGTH_MAP: Record<string, number> = {
+export type AromaKey = (typeof AROMA_STRENGTHS)[keyof typeof AROMA_STRENGTHS]
+export type SugarKey = (typeof SUGAR_LEVELS)[keyof typeof SUGAR_LEVELS]
+export type TemperatureKey = (typeof TEMPERATURES)[keyof typeof TEMPERATURES]
+export type CoffeeTypeKey = (typeof COFFEE_TYPES)[keyof typeof COFFEE_TYPES]
+
+export const AROMA_STRENGTH_MAP: Readonly<Record<AromaKey, number>> = {
   '🫘': 1,
   '🫘🫘': 2,
   '🫘🫘🫘': 3,
@@ -33,7 +38,7 @@ export const AROMA_STRENGTH_MAP: Record<string, number> = {
   '🫘🫘🫘🫘🫘': 5,
 }
 
-export const SUGAR_MAP: Record<string, number> = {
+export const SUGAR_MAP: Readonly<Record<SugarKey, number>> = {
   none: 0,
   '🍰': 1,
   '🍰🍰': 2,
@@ -41,13 +46,13 @@ export const SUGAR_MAP: Record<string, number> = {
   '🍰🍰🍰🍰': 4,
 }
 
-export const TEMPERATURE_LABELS: Record<string, string> = {
+export const TEMPERATURE_LABELS: Readonly<Record<TemperatureKey, string>> = {
   '🥵': 'Hot',
   '🏡🛋️': 'Room Temp',
   '🧊': 'Cold',
 }
 
-export const COFFEE_TYPE_LABELS: Record<string, string> = {
+export const COFFEE_TYPE_LABELS: Readonly<Record<CoffeeTypeKey, string>> = {
   '🥛': 'With Milk',
   '☕️': 'Black Coffee',
 }

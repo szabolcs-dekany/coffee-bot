@@ -42,7 +42,7 @@ This document outlines a comprehensive refactoring plan to improve the coffee-bo
 
 ## Priority Matrix
 
-```
+```text
                     High Impact
                          │
     Phase 2              │              Phase 1
@@ -1371,7 +1371,7 @@ export function validateAggregationResult<T>(
 
 ### Test Structure
 
-```
+```text
 tests/
 ├── unit/
 │   ├── services/
