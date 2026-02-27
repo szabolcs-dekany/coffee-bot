@@ -1,9 +1,6 @@
 import { StringSelectMenuInteraction } from 'discord.js'
-import { handleCoffeeType } from './CoffeeTypeResponseHandler'
-import { handleAromaStrength } from './AromaStrengthResponseHandler'
-import { handleSugar } from './SugarResponseHandler'
+import { responseHandlerRegistry } from './ResponseHandlerRegistry'
 import { isCompleteCoffeeDocument } from '../CoffeeDocumentHelper'
-import { handleTemperature } from './TemperatureResponseHandler'
 import { updateUserChallengeProgress } from '../../utils/challengeUtils'
 import { createLogger } from '../../utils/logger'
 
@@ -22,23 +19,14 @@ export async function handleInteraction(
       `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
     )
 
-    let coffeeDocument = undefined
-
-    if (responseType === 'coffee-type') {
-      coffeeDocument = await handleCoffeeType(interaction, sessionId)
+    if (!responseHandlerRegistry.hasHandler(responseType)) {
+      logger.warn(`Unknown response type: ${responseType}`)
+      await interaction.deferUpdate()
+      return
     }
 
-    if (responseType === 'aroma-strength') {
-      coffeeDocument = await handleAromaStrength(interaction, sessionId)
-    }
-
-    if (responseType === 'sugar') {
-      coffeeDocument = await handleSugar(interaction, sessionId)
-    }
-
-    if (responseType === 'temperature') {
-      coffeeDocument = await handleTemperature(interaction, sessionId)
-    }
+    const handler = responseHandlerRegistry.getHandler(responseType)
+    const coffeeDocument = await handler!.handle(interaction, sessionId)
 
     await interaction.deferUpdate()
 
