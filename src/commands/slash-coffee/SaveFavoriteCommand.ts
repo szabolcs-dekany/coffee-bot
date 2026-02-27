@@ -4,15 +4,9 @@ import {
   getCoffeeTypeLabel,
   getTemperatureLabel,
 } from '../../utils/coffeeLabels'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-save-favorite-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('save-favorite-command')
 
 export const data = new SlashCommandBuilder()
   .setName('savefavorite')

@@ -1,14 +1,8 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeFavoriteDocument } from '../../documents/CoffeeFavorite'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-delete-favorite-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('delete-favorite-command')
 
 export const data = new SlashCommandBuilder()
   .setName('deletefavorite')

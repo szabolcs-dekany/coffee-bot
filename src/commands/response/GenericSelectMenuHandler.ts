@@ -1,25 +1,20 @@
 import { StringSelectMenuInteraction } from 'discord.js'
-import pino from 'pino'
 import { handleCoffeeType } from './CoffeeTypeResponseHandler'
 import { handleAromaStrength } from './AromaStrengthResponseHandler'
 import { handleSugar } from './SugarResponseHandler'
 import { isCompleteCoffeeDocument } from '../CoffeeDocumentHelper'
 import { handleTemperature } from './TemperatureResponseHandler'
+import { updateUserChallengeProgress } from '../../utils/challengeUtils'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-generic-select-handler',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('generic-select-handler')
 
 export async function handleInteraction(
   interaction: StringSelectMenuInteraction,
 ) {
   const customId = interaction.customId
-  const sessionId = await getSessionId(customId)
-  const responseType = await getResponseType(customId)
+  const sessionId = getSessionId(customId)
+  const responseType = getResponseType(customId)
 
   logger.info(
     `Handling select interaction for ${interaction.user.displayName} - session ${sessionId} - type ${responseType}`,
@@ -46,6 +41,11 @@ export async function handleInteraction(
   await interaction.deferUpdate()
 
   if (coffeeDocument && isCompleteCoffeeDocument(coffeeDocument)) {
+    // Track challenge progress
+    const userName = interaction.user.displayName || interaction.user.username
+    const userId = interaction.user.id
+    await updateUserChallengeProgress(userId, userName, sessionId)
+
     await interaction.followUp({
       content: 'Your coffee order is complete! 🎉, See you soon! ☕️',
       components: [],
@@ -53,10 +53,10 @@ export async function handleInteraction(
   }
 }
 
-const getSessionId = async (customId: string) => {
+function getSessionId(customId: string): string {
   return customId.split('|')[0]
 }
 
-const getResponseType = async (customId: string) => {
+function getResponseType(customId: string): string {
   return customId.split('|')[1]
 }

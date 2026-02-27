@@ -4,15 +4,9 @@ import {
   getCoffeeTypeLabel,
   getTemperatureLabel,
 } from '../../utils/coffeeLabels'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-favorites-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('favorites-command')
 
 export const data = new SlashCommandBuilder()
   .setName('favorites')
@@ -36,7 +30,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       logger.info(`❌ No favorites found for ${userName}`)
       await interaction.followUp({
         content:
-          "You don't have any saved favorites yet! ☕️\n\nUse `/savefavorite` to create your first favorite coffee preset.",
+          'You don\'t have any saved favorites yet! ☕️\n\nUse `/savefavorite` to create your first favorite coffee preset.',
         ephemeral: true,
       })
       return

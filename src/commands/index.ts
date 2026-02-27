@@ -9,6 +9,7 @@ import * as savefavorite from './slash-coffee/SaveFavoriteCommand'
 import * as favorites from './slash-coffee/FavoritesCommand'
 import * as usefavorite from './slash-coffee/UseFavoriteCommand'
 import * as deletefavorite from './slash-coffee/DeleteFavoriteCommand'
+import * as challenge from './slash-coffee/ChallengeCommand'
 
 export const commands = {
   coffee,
@@ -22,4 +23,5 @@ export const commands = {
   favorites,
   usefavorite,
   deletefavorite,
+  challenge,
 }

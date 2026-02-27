@@ -2,15 +2,9 @@ import { CommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
 import { CoffeeRequestDocument } from '../../documents/CoffeeDocument'
 import { formatBudapestTime } from '../../utils/dateUtils'
-import pino from 'pino'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-list-latest-coffee-session-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('latest-session-command')
 export const data = new SlashCommandBuilder()
   .setName('session')
   .setDescription('Lists all coffee requests for the newest session')

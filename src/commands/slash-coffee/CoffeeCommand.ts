@@ -1,22 +1,17 @@
 import {
   ActionRowBuilder,
-  CommandInteraction,
+  ChatInputCommandInteraction,
   MessageActionRowComponentBuilder,
   SlashCommandBuilder,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js'
-import pino from 'pino'
 import { v4 as uuidv4 } from 'uuid'
 import { CoffeeSessionDocument } from '../../documents/CoffeeSession'
+import { initializeDefaultChallenges } from '../../utils/challengeUtils'
+import { createLogger } from '../../utils/logger'
 
-const logger = pino({
-  name: 'coffee-bot-coffee-command',
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-})
+const logger = createLogger('coffee-command')
 
 export const data = new SlashCommandBuilder()
   .setName('coffee')
@@ -28,8 +23,12 @@ export const data = new SlashCommandBuilder()
       .setRequired(true),
   )
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply()
+
+  // Ensure challenges are initialized
+  await initializeDefaultChallenges()
+
   const member = interaction.guild?.members.cache.get(interaction.user.id)
   const roles = member?.roles.cache
 
@@ -64,7 +63,7 @@ export async function execute(interaction: CommandInteraction) {
   )
 
   const sessionId = uuidv4()
-  const estimatedTimeOfCoffee = interaction.options.data[0].value
+  const estimatedTimeOfCoffee = interaction.options.getString('etc', true)
 
   logger.info(`Starting a new Coffee session with session id ${sessionId} ☕️`)
   const session = new CoffeeSessionDocument({
